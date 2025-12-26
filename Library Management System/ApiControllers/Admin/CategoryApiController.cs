@@ -23,7 +23,7 @@ public class CategoryApiController(ICategoryService service) : ControllerBase
     /// <param name="dto">DTO containing the category data; <see cref="CreateCategory.CategoryName"/> must be a non-empty string.</param>
     /// <returns>An <see cref="IActionResult"/> representing the HTTP response: `BadRequest` if the category name is empty; `Conflict` if a category with the same name already exists; `Ok` when creation succeeds; `StatusCode(401)` on internal failure.</returns>
     [HttpPost]
-    public async Task<IActionResult> Create(CreateCategory dto)
+    public async Task<IActionResult> Create([FromBody]CreateCategory dto)
     {
         if (string.IsNullOrWhiteSpace(dto.CategoryName))
         {

@@ -25,4 +25,10 @@
       <Folder Include="wwwroot\Images\User\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Content Update="appsettings.json">
+        <DependentUpon>.gitignore</DependentUpon>
+      </Content>
+    </ItemGroup>
+
 </Project>

@@ -32,7 +32,7 @@
     </div>
 </div>
 
-@section Scripts {
+@section Scripts{
 <script>
     const booksContainer = document.getElementById('booksContainer');
     const newBooksContainer = document.getElementById('newBooksContainer');
@@ -54,17 +54,18 @@
     // Normalize book object
     function normalizeBook(book) {
         return {
-            Book_id: book.Book_id || book.book_id,
-            Book_Name: book.Book_Name || book.book_Name,
-            Author: book.Author || book.author,
-            Publisher: book.Publisher || book.publisher,
-            Price: book.Price || book.price,
-            Image_Url: book.Image_Url || book.image_Url
+            Book_id: book.BookId ||book.bookId,
+            Book_Name: book.BookName||book.bookName,
+            Author: book.Author||book.author,
+            Publisher: book.Publisher||book.publisher,
+            Price: book.Price||book.price,
+            Image_Url: book.ImageUrl||book.imageUrl,
         };
     }
 
 
     function createBookCard(book) {
+        console.log(book);
         return Object.assign(document.createElement('div'), {
             className: 'bg-white rounded-lg shadow hover:shadow-xl transition overflow-hidden flex flex-col',
             innerHTML: `
@@ -91,8 +92,7 @@
         if (!append) container.innerHTML = '';
         booksArray.forEach(book => container.appendChild(createBookCard(normalizeBook(book))));
     }
-
-    // Fetch books from API (paginated)
+    
     async function fetchBooks(term = '', page = 1) {
         if (isLoading) return;
         if (page > totalPages) return;
@@ -102,10 +102,21 @@
         errorDiv.classList.add('hidden');
 
         try {
-            const response = await fetch(term
-                ? `/api/student/search?searchTerm=${encodeURIComponent(term)}&page=${page}`
-                : `/api/Student/paginated?page=${page}&size=6`);
-            if (!response.ok) throw new Error('Network error');
+            const url = term
+                ? '/api/student/search?searchTerm=' + encodeURIComponent(term) + '&page=' + page
+                : '/api/student/paginated?page=' + page + '&size=6';
+            
+            const response = await secureFetch(url, {
+                    method: 'GET',
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
+            console.log(response);
+            if (!response.ok) {
+                return;
+            }
 
             const data = await response.json();
             const items =data.items;
@@ -129,6 +140,7 @@
 
     // Load initial books
     let newestBooks = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
+    console.log(newestBooks);
     renderBooks(newBooksContainer, newestBooks);
     fetchBooks();
 

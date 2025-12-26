@@ -23,7 +23,7 @@ public class BookService(ApplicationDbContext dbContext) : IBookService
             CategoryId = createBookDto.CategoryId,
             BookName = createBookDto.BookName,
             Quantity = createBookDto.Quantity,
-            Price = createBookDto.Price,
+            Price = (int) createBookDto.Price,
             Publisher = createBookDto.Publisher,
             ImageUrl = createBookDto.ImageUrl,
             PublicationDate = createBookDto.PublishDate
@@ -58,7 +58,7 @@ public class BookService(ApplicationDbContext dbContext) : IBookService
         book.CategoryId = updateBookDto.CategoryId;
         book.BookName = updateBookDto.BookName;
         book.Quantity = updateBookDto.Quantity;
-        book.Price = updateBookDto.Price;
+        book.Price =(int) updateBookDto.Price;
         if(updateBookDto.ImageUrl!=null)
             book.ImageUrl = updateBookDto.ImageUrl;
         book.Publisher = updateBookDto.Publisher;
@@ -125,11 +125,7 @@ public class BookService(ApplicationDbContext dbContext) : IBookService
         return MakePaginatedModel(books, page, pageSize, totalBooks);
 
     }
-
-    public async Task<List<Models.Book>> GetAllBooksAsync()
-    {
-        return await _context.Books.ToListAsync();
-    }
+    
 
     /// <summary>
     /// Retrieve a page of books ordered by book name and packaged with pagination metadata.

@@ -3,23 +3,38 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Library_Management_System.Models;
 
-public class Book
+public partial class Book
 {
-    [Key,Required]
+    [Key]
     public int BookId { get; set; }
+
+    [Required]
     public string BookName { get; set; }
+
+    [Required]
     public string Author { get; set; }
+
+    [Required]
     public string Publisher { get; set; }
+
+    [Required]
     public string Isbn { get; set; }
+
     public string? ImageUrl { get; set; }
+
+    [Required]
     public int CategoryId { get; set; }
-    public float Price { get; set; }
-    public DateOnly? PublicationDate { get; set; }
-    public int Quantity { get; set; }
-    
-    //relations
-    //one book belongs to one category
+
     [ForeignKey("CategoryId")]
-    public Category Category { get; set; }
+    public Category? Category { get; set; }
+
+    [Required]
+    public decimal Price { get; set; }
+
+    public DateOnly? PublicationDate { get; set; }
+
+    [Required]
+    public int Quantity { get; set; }
 }
+
 
