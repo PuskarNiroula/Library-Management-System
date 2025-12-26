@@ -1,6 +1,7 @@
 using Library_Management_System.Enum;
 using Library_Management_System.Models;
 using Library_Management_System.Services.Admin.Book;
+using Library_Management_System.Services.Admin.Exception;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -45,5 +46,38 @@ public class BookApiController(IBookService service):ControllerBase
         books = await _service.GetSearchedBook(searchTerm, page);
             return Ok(books);
     }
+
+    [HttpPost("buy-book")]
+    public async Task<IActionResult> BuyBook([FromForm] int id)
+    {
+        try
+        {
+            if (await _service.SaleOrRentBook(id, "sales"))
+            {
+                return Ok(new
+                {
+                    status = "success",
+                    message = "Request to buy book sent successfully"
+                });
+            }
+            else
+            {
+                return BadRequest(new
+                {
+                    status = "failed",
+                    message = "Could not process the book purchase request."
+                });
+            }
+        }
+        catch (BookNotFoundException exception)
+        {
+            return NotFound(new
+            {
+                status = "error",
+                message = exception.Message
+            });
+        }
+    }
+
     
 }

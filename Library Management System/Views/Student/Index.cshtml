@@ -64,7 +64,7 @@
 
 
     function createBookCard(book) {
-        console.log(book);
+        
         return Object.assign(document.createElement('div'), {
             className: 'bg-white rounded-lg shadow hover:shadow-xl transition overflow-hidden flex flex-col',
             innerHTML: `
@@ -112,7 +112,6 @@
                     },
                 }
             );
-            console.log(response);
             if (!response.ok) {
                 return;
             }
@@ -128,7 +127,6 @@
                 errorDiv.classList.remove('hidden');
             }
         } catch (err) {
-            console.error(err);
             errorText.textContent = "Oops! Something went wrong. Please try again later.";
             errorDiv.classList.remove('hidden');
         } finally {
@@ -138,8 +136,7 @@
 }
 
     // Load initial books
-    let newestBooks = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
-    console.log(newestBooks);
+    let newestBooks = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));;
     renderBooks(newBooksContainer, newestBooks);
     fetchBooks();
 
@@ -171,6 +168,36 @@
             }
         }
 });
+    
+    function buyBook(id) {
+       $.ajax({
+           method: 'POST',
+           url: `/api/student/buy-book`,
+           data: {
+               id: id,
+           },
+           success:function (response) {
+               if (response.status === "success") {
+                   Swal.fire({
+                       icon: 'success',
+                       title: 'Success!',
+                       message:"buy request sent successfully!"
+                   });
+               }else{
+                   Swal.fire({
+                       icon: 'error',
+                       title: 'Error!',
+                       message:response.message,
+                   });
+               }
+       },
+           error:function (error) {
+               console.log(error);
+           }
+       });
+       
+        
+    }
 
 </script>
 }
