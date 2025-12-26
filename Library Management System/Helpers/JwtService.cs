@@ -1,6 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Library_Management_System.Models;
+using Library_Management_System.Services;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Library_Management_System.Helpers;
@@ -14,26 +16,36 @@ public class JwtService(IConfiguration config)
     /// <param name="role">The role name to include in the token's role claim.</param>
     /// <returns>A serialized JWT string signed with the configured secret and valid for 4 hours.</returns>
     /// <exception cref="InvalidOperationException">Thrown when the configured JWT secret key is missing or shorter than 16 characters.</exception>
-    public string GenerateToken(string userId, string role)
+    public string GenerateToken(string userId, string role,string userName)
     {
+       
+
         var secretKeyString = config["Jwt:SecretKey"];
 
         if (string.IsNullOrEmpty(secretKeyString) || secretKeyString.Length < 32)
-            throw new InvalidOperationException("JWT SecretKey is missing or too short (minimum 32 characters).");
+            throw new InvalidOperationException(
+                "JWT SecretKey is missing or too short (minimum 32 characters).");
 
         var issuer = config["Jwt:Issuer"];
         var audience = config["Jwt:Audience"];
+
         if (string.IsNullOrEmpty(issuer) || string.IsNullOrEmpty(audience))
-        {
-            throw new InvalidOperationException("JWT Issuer and Audience are missing or not set.");
-        }
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKeyString));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            throw new InvalidOperationException(
+                "JWT Issuer and Audience are missing or not set.");
+
+        var key = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(secretKeyString));
+
+        var creds = new SigningCredentials(
+            key, SecurityAlgorithms.HmacSha256);
 
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, userId),
-            new Claim(ClaimTypes.Role, role)
+            new Claim(ClaimTypes.NameIdentifier,userId),
+            new Claim(ClaimTypes.Name,userName),
+            new Claim(ClaimTypes.Role, role),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
         var token = new JwtSecurityToken(
@@ -46,4 +58,5 @@ public class JwtService(IConfiguration config)
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+
 }

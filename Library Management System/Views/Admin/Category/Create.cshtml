@@ -43,7 +43,10 @@
         try {
             const response = await secureFetch('/api/category-api/create', {
                 method: 'POST',
-                body: JSON.stringify({ Category_Name: categoryName })
+                headers:{
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ CategoryName: categoryName })
             });
 
             const data = await response.json();

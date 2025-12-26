@@ -16,10 +16,10 @@ public class StudentController(IBookService service):Controller
         return View("Index",newBooks);
     }
     [Route("Requests")]
-    public async Task<IActionResult> Requests()
+    public Task<IActionResult> Requests()
     {
         ViewData["ActiveMenu"] = "Requests";
-        return View("Requests");  
+        return Task.FromResult<IActionResult>(View("Requests"));  
     }
 
     [Route("Rentals")]

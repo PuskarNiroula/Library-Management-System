@@ -12,6 +12,17 @@ public class HomeController : Controller
     /// <returns>A view result that renders the "Login" view.</returns>
     public IActionResult Index()
     {
+        if (User.Identity != null && User.Identity.IsAuthenticated)
+        {
+            if (User.IsInRole("Admin"))
+            
+                return Redirect("/Admin/Index");
+            
+            
+           
+               return Redirect("/User/Index");
+           
+        }
         return View("Login");
     }
 

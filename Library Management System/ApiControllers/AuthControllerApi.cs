@@ -81,12 +81,13 @@ public class AuthControllerApi(IUserService userService,JwtService jwtService) :
             });
         }
 
-        var user = await _userService.LoginAsync(dto);
-
-        if (user!=null)
+        try
         {
+            var user = await _userService.LoginAsync(dto);
+
+        
             // Generate JWT token
-            var token = _jwtService.GenerateToken(user.Id.ToString(), user.Role);
+            var token = _jwtService.GenerateToken(user.Id.ToString(), user.Role,user.FullName);
             Response.Cookies.Append("jwt_token", token, new CookieOptions
             {
                 HttpOnly = true,
@@ -101,13 +102,18 @@ public class AuthControllerApi(IUserService userService,JwtService jwtService) :
                 message = "Login successful",
                 role = user.Role,
             });
+
+        }catch(Exception ex)
+        {
+            return BadRequest(new
+                {
+                    status = "error",
+                    message = "Login failed "+ex.Message,
+                }
+            );
         }
 
-        return BadRequest(new
-        {
-            status = "error",
-            message = "Invalid credentials"
-        });
+      
     }
     
         /// <summary>
