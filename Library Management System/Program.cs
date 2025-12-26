@@ -20,7 +20,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 //jwt Authentication 
 //creating key
 var key =Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"] ?? throw new InvalidOperationException());
-Console.WriteLine($"Secret key: {key}");
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
