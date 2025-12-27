@@ -84,8 +84,7 @@ public class AuthControllerApi(IUserService userService,JwtService jwtService) :
         try
         {
             var user = await _userService.LoginAsync(dto);
-
-        
+            
             // Generate JWT token
             var token = _jwtService.GenerateToken(user.Id.ToString(), user.Role,user.FullName);
             Response.Cookies.Append("jwt_token", token, new CookieOptions

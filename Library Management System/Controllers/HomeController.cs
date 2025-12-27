@@ -15,12 +15,8 @@ public class HomeController : Controller
         if (User.Identity != null && User.Identity.IsAuthenticated)
         {
             if (User.IsInRole("Admin"))
-            
                 return Redirect("/Admin/Index");
-            
-            
-           
-               return Redirect("/User/Index");
+            return Redirect("/User/Index");
            
         }
         return View("Login");

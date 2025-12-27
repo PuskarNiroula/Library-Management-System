@@ -3,6 +3,7 @@ using Library_Management_System.DTOs.User;
 using Library_Management_System.Enum;
 using Library_Management_System.Helpers;
 using Library_Management_System.Models;
+using Library_Management_System.Services.Admin.Exception;
 using Microsoft.EntityFrameworkCore;
 
 namespace Library_Management_System.Services;
@@ -64,12 +65,12 @@ public class UserService(ApplicationDbContext dbContext) : IUserService
        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == loginDto.Email);
         if (user == null)
         {
-            return null;
+            throw new UserNotFoundException();
         }
 
         if (!PasswordHelper.VerifyPassword(loginDto.Password, user.PasswordHash))
         {
-            return null;
+            throw new UserNotFoundException();
         }
         UserResponseDto userResponse=new UserResponseDto
         {

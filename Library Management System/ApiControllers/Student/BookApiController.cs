@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Library_Management_System.Enum;
 using Library_Management_System.Models;
 using Library_Management_System.Services.Admin.Book;
@@ -9,9 +10,10 @@ namespace Library_Management_System.ApiControllers.Student;
 [ApiController]
 [Route("api/student")]
 [Authorize(Roles = UserRoleEnum.Student)]
-public class BookApiController(IBookService service):ControllerBase
+public class BookApiController(IBookService service,IBookRequestService bookRequestService):ControllerBase
 {
     private readonly IBookService _service=service ?? throw new ArgumentNullException(nameof(service));
+    private readonly IBookRequestService _bookRequestService=bookRequestService ?? throw new ArgumentNullException(nameof(bookRequestService));
    
     /// <summary>
     /// Gets a paginated list of books for the student view.
@@ -75,6 +77,37 @@ public class BookApiController(IBookService service):ControllerBase
             {
                 status = "error",
                 message = exception.Message
+            });
+        }
+    }
+
+    [HttpPost("rent-book")]
+    public async Task<IActionResult> RentBook([FromForm] int id)
+    {
+        try
+        {
+          var book= await _service.GetBookByIdAsync(id);
+             BookRequest request = new BookRequest
+             {
+                 BookId = book.BookId,
+                 RequestType = RequestTypeEnum.Rent,
+                 UserId = int.TryParse(
+                     User.FindFirstValue(ClaimTypes.NameIdentifier),
+                     out var userId
+                 )? userId : throw new UnauthorizedAccessException("Invalid token")
+             };
+             if (await _bookRequestService.CreateBookRequestAsync(request))
+                     return Ok(new {status = "success"});
+                 
+             return BadRequest(new {status = "error"});
+        }
+        catch (BookNotFoundException exception)
+        {
+            return BadRequest(new
+            {
+                status = "error",
+                message = exception.Message
+
             });
         }
     }

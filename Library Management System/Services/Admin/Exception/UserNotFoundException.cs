@@ -1,8 +1,3 @@
 namespace Library_Management_System.Services.Admin.Exception;
 
-public class UserNotFoundException:System.Exception
-{
-    public UserNotFoundException(int id) : base("User with ID: " + id + " not found.")
-    {
-    }
-}
+public class UserNotFoundException(int id = 0) : System.Exception("User with ID: " + id + " not found.");

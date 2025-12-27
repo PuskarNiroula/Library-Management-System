@@ -198,6 +198,35 @@
        
         
     }
+    
+    function rentBook(id) {
+        $.ajax({
+            method: 'POST',
+            url: `/api/student/rent-book`,
+            data: {
+                id: id,
+            },
+            success:function (response) {
+                if (response.status === "success") {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        message:"rent request sent successfully!"
+                    });
+                }else{
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        message:response.message,
+                    });
+                }
+            },
+            error:function (error) {
+                console.log(error);
+            }
+        });
+        
+    }
 
 </script>
 }

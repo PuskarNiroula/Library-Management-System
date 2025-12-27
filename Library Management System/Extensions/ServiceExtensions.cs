@@ -22,5 +22,6 @@ public static class ServiceExtensions
         services.AddScoped<IBookService, BookService>();
          services.AddScoped<IUserControlService,UserControlService>();
          services.AddScoped<JwtService>();
+         services.AddScoped<IBookRequestService, BookRequestService>();
     }
 }
