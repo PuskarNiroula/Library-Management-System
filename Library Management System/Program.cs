@@ -12,15 +12,21 @@ builder.Services.AddRazorPages();
 builder.Services.AddControllersWithViews();
 
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration
+    .GetConnectionString("DefaultConnection");
+
+
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new Exception("DefaultConnection was not loaded!");
+}
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
 );
-
 //jwt Authentication 
 //creating key
 var key =Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"] ?? throw new InvalidOperationException());
-Console.WriteLine($"Secret key: {key}");
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

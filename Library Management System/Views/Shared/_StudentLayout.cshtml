@@ -83,15 +83,14 @@
                 <div class="hidden md:block text-gray-700">
                     Hello, <span class="font-semibold text-indigo-600">@User.Identity?.Name ?? "Student"</span>
                 </div>
-
-                <form asp-controller="Account" asp-action="Logout" method="post" class="inline">
-                    <button type="submit"
+                
+                    <button type="submit" onclick="logout()"
                             class="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-lg 
                            hover:bg-indigo-700 active:bg-indigo-800 transition duration-200 shadow-sm">
                         <i class="fa-solid fa-right-from-bracket mr-2"></i>
                         <span class="hidden sm:inline">Logout</span>
                     </button>
-                </form>
+               \
             </div>
         </nav>
 
@@ -111,7 +110,21 @@
         const toggleBtn = document.getElementById('toggleSidebar');
         toggleBtn.addEventListener('click', () => {
             sidebar.classList.toggle('hidden');
-        }); 
+        });
+
+        function logout() {
+            localStorage.removeItem("token");
+
+            $.ajax({
+                url: "/api/auth/logout",
+                method: "POST",
+                dataType: "json",
+                success: function () {
+                    location.href="/";
+                }
+            });
+
+        }
     </script>
 </body>
 </html>
