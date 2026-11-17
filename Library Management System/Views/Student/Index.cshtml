@@ -1,178 +1,470 @@
 ﻿@model List<Library_Management_System.Models.Book>
+
 @{
-    Layout = "_StudentLayout";
-    ViewData["Title"] = "Library";
+Layout = "_StudentLayout";
+ViewData["Title"] = "Library";
 }
+
 <div class="container mx-auto px-4 py-6">
+
+    <!-- Search -->
     <div class="mb-8">
-        <input 
-            type="text" 
+        <input
+            type="text"
             id="searchInput"
             placeholder="Search for books..."
             class="w-full md:w-1/2 p-3 rounded shadow border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
         />
     </div>
 
+    <!-- New Arrivals -->
     <div class="mb-12">
         <h2 class="text-2xl font-bold text-gray-800 mb-4">New Arrivals</h2>
-        <div id="newBooksContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            <!-- New books rendered via JS -->
+
+        <div id="newBooksContainer"
+             class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         </div>
     </div>
 
-
+    <!-- All Books -->
     <div class="mb-12">
+
         <h2 class="text-2xl font-bold text-gray-800 mb-4">All Books</h2>
-        <div id="loadBookError" class="hidden bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 p-4 rounded-md mt-2" role="alert">
+
+        <div id="loadBookError"
+             class="hidden bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 p-4 rounded-md mt-2"
+             role="alert">
+
             <p class="font-medium" id="loadBookErrorText"></p>
+
         </div>
-        <div id="booksContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          
+
+        <div id="booksContainer"
+             class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         </div>
+
     </div>
+
 </div>
 
-@section Scripts{
+
+@section Scripts {
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
+
     const booksContainer = document.getElementById('booksContainer');
     const newBooksContainer = document.getElementById('newBooksContainer');
     const searchInput = document.getElementById('searchInput');
+
     const errorDiv = document.getElementById('loadBookError');
     const errorText = document.getElementById('loadBookErrorText');
+
     const loadingDiv = document.createElement('div');
 
     loadingDiv.textContent = 'Loading more books...';
     loadingDiv.className = 'text-gray-500 text-center mt-4';
+
     booksContainer.parentNode.appendChild(loadingDiv);
+
     loadingDiv.style.display = 'none';
+
+
     let currentPage = 1;
     let totalPages = 1;
     let currentTerm = '';
     let isLoading = false;
 
+    // Prevent multiple rent/buy requests for the same book
+    const processingBooks = new Set();
+
+
     // Normalize book object
     function normalizeBook(book) {
+
         return {
-            Book_id: book.BookId ||book.bookId,
-            Book_Name: book.BookName||book.bookName,
-            Author: book.Author||book.author,
-            Publisher: book.Publisher||book.publisher,
-            Price: book.Price||book.price,
-            Image_Url: book.ImageUrl||book.imageUrl,
+            Book_id: book.BookId ?? book.bookId,
+            Book_Name: book.BookName ?? book.bookName,
+            Author: book.Author ?? book.author,
+            Publisher: book.Publisher ?? book.publisher,
+            Price: book.Price ?? book.price,
+            Image_Url: book.ImageUrl ?? book.imageUrl
         };
+
     }
 
 
+    // Create book card
     function createBookCard(book) {
-        console.log(book);
+
         return Object.assign(document.createElement('div'), {
+
             className: 'bg-white rounded-lg shadow hover:shadow-xl transition overflow-hidden flex flex-col',
+
             innerHTML: `
-            <img src="${book.Image_Url}" alt="${book.Book_Name}" class="w-full h-48 object-cover">
-            <div class="p-4 flex-1 flex flex-col justify-between">
-                <div>
-                    <h3 class="font-semibold text-lg text-gray-800">${book.Book_Name}</h3>
-                    <p class="text-gray-500 mt-1">by ${book.Author}</p>
-                </div>
-                <div class="mt-3 flex justify-between items-center">
-                    <span class="text-indigo-600 font-bold">Rs.${book.Price.toFixed(2)}</span>
-                    <div class="space-x-2">
-                        <button onclick="rentBook(${book.Book_id})" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition text-sm">Rent</button>
-                        <button onclick="buyBook(${book.Book_id})" class="bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 transition text-sm">Buy</button>
+
+                    <img
+                        src="${book.Image_Url || ''}"
+                        alt="${book.Book_Name || 'Book'}"
+                        class="w-full h-48 object-cover"
+                    >
+
+                    <div class="p-4 flex-1 flex flex-col justify-between">
+
+                        <div>
+
+                            <h3 class="font-semibold text-lg text-gray-800">
+                                ${book.Book_Name ?? 'Unknown Book'}
+                            </h3>
+
+                            <p class="text-gray-500 mt-1">
+                                by ${book.Author ?? 'Unknown Author'}
+                            </p>
+
+                        </div>
+
+                        <div class="mt-3 flex justify-between items-center">
+
+                            <span class="text-indigo-600 font-bold">
+                                Rs.${Number(book.Price ?? 0).toFixed(2)}
+                            </span>
+
+                            <div class="space-x-2">
+
+                                <button
+                                    onclick="handleBookAction(${book.Book_id}, 'rent')"
+                                    class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition text-sm">
+                                    Rent
+                                </button>
+
+                                <button
+                                    onclick="handleBookAction(${book.Book_id}, 'buy')"
+                                    class="bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 transition text-sm">
+                                    Buy
+                                </button>
+
+                            </div>
+
+                        </div>
+
                     </div>
-                </div>
-            </div>
-        `
+
+                `
+
         });
+
     }
+
 
     // Render books
     function renderBooks(container, booksArray, append = true) {
-        if (!append) container.innerHTML = '';
-        booksArray.forEach(book => container.appendChild(createBookCard(normalizeBook(book))));
+
+        if (!append) {
+            container.innerHTML = '';
+        }
+
+        booksArray.forEach(book => {
+
+            container.appendChild(
+                createBookCard(normalizeBook(book))
+            );
+
+        });
+
     }
-    
+
+
+    // Rent / Buy book with SweetAlert2
+    async function handleBookAction(bookId, action) {
+
+        if (processingBooks.has(bookId)) return;
+
+        const isRent = action === 'rent';
+
+        // Confirmation
+        const confirmation = await Swal.fire({
+
+            title: isRent ? 'Rent this book?' : 'Buy this book?',
+
+            text: isRent
+                ? 'Are you sure you want to rent this book?'
+                : 'Are you sure you want to buy this book?',
+
+            icon: 'question',
+
+            showCancelButton: true,
+
+            confirmButtonColor: isRent ? '#22c55e' : '#4f46e5',
+
+            cancelButtonColor: '#6b7280',
+
+            confirmButtonText: isRent ? 'Yes, Rent it!' : 'Yes, Buy it!',
+
+            cancelButtonText: 'Cancel'
+
+        });
+
+
+        // User cancelled
+        if (!confirmation.isConfirmed) return;
+
+
+        processingBooks.add(bookId);
+
+        try {
+
+            // Loading alert
+            Swal.fire({
+
+                title: 'Processing...',
+
+                text: 'Please wait while we process your request.',
+
+                allowOutsideClick: false,
+
+                allowEscapeKey: false,
+
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+
+            });
+
+
+            // API request
+            const response = await secureFetch(`/api/student/${action}`, {
+
+                method: 'POST',
+
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+
+                body: JSON.stringify({
+                    bookId: bookId
+                })
+
+            });
+
+
+            // Parse backend response
+            const data = await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.message ||
+                    data.Message ||
+                    'Something went wrong.'
+                );
+
+            }
+
+
+            // Success response
+            await Swal.fire({
+
+                title: 'Success!',
+
+                text: data.message ||
+                    data.Message ||
+                    `Book ${action} successful!`,
+
+                icon: 'success',
+
+                confirmButtonColor: '#4f46e5',
+
+                confirmButtonText: 'OK'
+
+            });
+
+
+        } catch (error) {
+
+            console.error('Book action error:', error);
+
+            // Error response
+            Swal.fire({
+
+                title: 'Failed!',
+
+                text: error.message ||
+                    'Something went wrong. Please try again.',
+
+                icon: 'error',
+
+                confirmButtonColor: '#4f46e5',
+
+                confirmButtonText: 'OK'
+
+            });
+
+        } finally {
+
+            processingBooks.delete(bookId);
+
+        }
+
+    }
+
+
+    // Fetch books
     async function fetchBooks(term = '', page = 1) {
+
         if (isLoading) return;
+
         if (page > totalPages) return;
 
         isLoading = true;
+
         loadingDiv.style.display = 'block';
+
         errorDiv.classList.add('hidden');
 
+
         try {
+
             const url = term
-                ? '/api/student/search?searchTerm=' + encodeURIComponent(term) + '&page=' + page
-                : '/api/student/paginated?page=' + page + '&size=6';
-            
+
+                ? '/api/student/search?searchTerm=' +
+                encodeURIComponent(term) +
+                '&page=' + page
+
+                : '/api/student/paginated?page=' +
+                page +
+                '&size=6';
+
+
             const response = await secureFetch(url, {
-                    method: 'GET',
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
+
+                method: 'GET',
+
+                headers: {
+                    'Content-Type': 'application/json'
                 }
-            );
-            console.log(response);
+
+            });
+
+
             if (!response.ok) {
-                return;
+                throw new Error('Failed to load books.');
             }
+
 
             const data = await response.json();
-            const items =data.items;
 
-            totalPages = data.totalPages;
-            renderBooks(booksContainer, items, page > 1);
+            const items = data.items ?? [];
 
+            totalPages = data.totalPages ?? 1;
+
+
+            renderBooks(
+                booksContainer,
+                items,
+                page > 1
+            );
+
+
+            // No books found
             if (items.length === 0 && page === 1) {
-                errorText.textContent = "We couldn't find any books matching your search. Please try different keywords.";
+
+                errorText.textContent =
+                    "We couldn't find any books matching your search. Please try different keywords.";
+
                 errorDiv.classList.remove('hidden');
+
             }
+
+
         } catch (err) {
+
             console.error(err);
-            errorText.textContent = "Oops! Something went wrong. Please try again later.";
+
+            errorText.textContent =
+                "Oops! Something went wrong. Please try again later.";
+
             errorDiv.classList.remove('hidden');
+
         } finally {
+
             loadingDiv.style.display = 'none';
+
             isLoading = false;
+
         }
-}
+
+    }
+
 
     // Load initial books
-    let newestBooks = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
-    console.log(newestBooks);
+    let newestBooks = @Html.Raw(
+    System.Text.Json.JsonSerializer.Serialize(Model)
+    );
+
     renderBooks(newBooksContainer, newestBooks);
+
     fetchBooks();
+
 
     // Debounce function
     function debounce(fn, delay) {
+
         let timeoutId;
-        return function(...args) {
+
+        return function (...args) {
+
             clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => fn.apply(this, args), delay);
+
+            timeoutId = setTimeout(() => {
+
+                fn.apply(this, args);
+
+            }, delay);
+
         };
+
     }
 
-    // Handle search input
+
+    // Search books
     searchInput.addEventListener('input', debounce((e) => {
+
         currentTerm = e.target.value.trim();
+
         currentPage = 1;
+
         totalPages = 1;
+
         booksContainer.innerHTML = '';
 
         fetchBooks(currentTerm, currentPage);
+
     }, 500));
 
-    // Infinite scroll / lazy load
+
+    // Infinite scroll
     window.addEventListener('scroll', () => {
-        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
-            if (!isLoading && currentPage <= totalPages) {
-                fetchBooks(currentTerm, currentPage + 1);
+
+        if (
+            window.innerHeight + window.scrollY >=
+            document.body.offsetHeight - 500
+        ) {
+
+            if (!isLoading && currentPage < totalPages) {
+
                 currentPage++;
+
+                fetchBooks(currentTerm, currentPage);
+
             }
+
         }
-});
+
+    });
 
 </script>
-}
 
-  
+}

@@ -7,8 +7,10 @@ public class RentLog
 {
     [Key]
     public int RentLogId { get; set; }
+    
     [Required]
     public int IncomeId { get; set; }
+    
     [Required]
     public string Status { get; set; }
     

@@ -58,14 +58,42 @@ namespace Library_Management_System.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
                     b.HasKey("BookId");
 
                     b.HasIndex("CategoryId");
 
                     b.ToTable("Books");
+                });
+
+            modelBuilder.Entity("Library_Management_System.Models.BookInventory", b =>
+                {
+                    b.Property<int>("BookInventoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("BookInventoryId"));
+
+                    b.Property<int>("AvailableQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BookId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RentedQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SoldQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalQuantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("BookInventoryId");
+
+                    b.HasIndex("BookId")
+                        .IsUnique();
+
+                    b.ToTable("BookInventories");
                 });
 
             modelBuilder.Entity("Library_Management_System.Models.BookRequest", b =>
@@ -233,6 +261,17 @@ namespace Library_Management_System.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("Library_Management_System.Models.BookInventory", b =>
+                {
+                    b.HasOne("Library_Management_System.Models.Book", "Book")
+                        .WithOne("BookInventory")
+                        .HasForeignKey("Library_Management_System.Models.BookInventory", "BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Book");
+                });
+
             modelBuilder.Entity("Library_Management_System.Models.BookRequest", b =>
                 {
                     b.HasOne("Library_Management_System.Models.Book", "Book")
@@ -286,6 +325,12 @@ namespace Library_Management_System.Migrations
                         .IsRequired();
 
                     b.Navigation("Income");
+                });
+
+            modelBuilder.Entity("Library_Management_System.Models.Book", b =>
+                {
+                    b.Navigation("BookInventory")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Library_Management_System.Models.Category", b =>
