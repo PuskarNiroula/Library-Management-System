@@ -12,13 +12,17 @@ builder.Services.AddRazorPages();
 builder.Services.AddControllersWithViews();
 
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration
+    .GetConnectionString("DefaultConnection");
+
+
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new Exception("DefaultConnection was not loaded!");
+}
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(
-        connectionString,
-        new MariaDbServerVersion(new Version(11, 8, 6))
-    )
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
 );
 //jwt Authentication 
 //creating key

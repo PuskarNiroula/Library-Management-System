@@ -48,8 +48,8 @@ namespace Library_Management_System.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<float>("Price")
-                        .HasColumnType("float");
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<DateOnly?>("PublicationDate")
                         .HasColumnType("date");
@@ -148,7 +148,7 @@ namespace Library_Management_System.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime>("Date")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("datetime");
 
                     b.Property<int?>("FineId")
                         .HasColumnType("int");
