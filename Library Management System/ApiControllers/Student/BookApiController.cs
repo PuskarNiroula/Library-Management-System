@@ -1,6 +1,9 @@
+using System.Security.Claims;
+using Library_Management_System.DTOs.Book;
 using Library_Management_System.Enum;
 using Library_Management_System.Models;
 using Library_Management_System.Services.Admin.Book;
+using Library_Management_System.Services.Student;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,9 +11,10 @@ namespace Library_Management_System.ApiControllers.Student;
 [ApiController]
 [Route("api/student")]
 [Authorize(Roles = UserRoleEnum.Student)]
-public class BookApiController(IBookService service):ControllerBase
+public class BookApiController(IBookService service,IBookInventoryService bookInventoryService):ControllerBase
 {
     private readonly IBookService _service=service ?? throw new ArgumentNullException(nameof(service));
+   
    
     /// <summary>
     /// Gets a paginated list of books for the student view.
@@ -44,6 +48,26 @@ public class BookApiController(IBookService service):ControllerBase
 
         books = await _service.GetSearchedBook(searchTerm, page);
             return Ok(books);
+    }
+    [Authorize]
+    [HttpPost("rent")]
+    public async Task<IActionResult> Rent([FromBody] RentBookDto rentBookDto)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (userId == null)
+            return Unauthorized();
+
+        var dto = new BookRequestDto
+        {
+            BookId = rentBookDto.BookId,
+            RequestType = "RENT",
+            UserId = int.Parse(userId)
+        };
+
+        var result = await bookInventoryService.RequestBookAsync(dto);
+
+        return Ok(result);
     }
 
     

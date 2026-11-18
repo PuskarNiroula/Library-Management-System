@@ -7,18 +7,22 @@ public class BookInventory
 {
     [Key]
     public int BookInventoryId { get; set; }
+
+    [Required]
+    public int BookId { get; set; }
+
     [Required]
     public int TotalQuantity { get; set; }
+
     [Required]
     public int AvailableQuantity { get; set; }
+
     [Required]
     public int SoldQuantity { get; set; }
+
     [Required]
     public int RentedQuantity { get; set; }
- 
 
-    [ForeignKey("BookId")]
+    [ForeignKey(nameof(BookId))]
     public Book Book { get; set; }
-   
-    
 }

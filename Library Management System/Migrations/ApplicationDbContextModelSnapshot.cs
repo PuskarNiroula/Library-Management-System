@@ -111,6 +111,10 @@ namespace Library_Management_System.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
