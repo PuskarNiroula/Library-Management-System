@@ -7,7 +7,7 @@ public class CreateBookDto
     public string Author { get; set; }
     public string Isbn { get; set; }
     public float Price { get; set; }
-    public int Quantity { get; set; }
+    public int? Quantity { get; set; } = null;
     public DateOnly PublishDate { get; set; } 
     public int CategoryId { get; set; }
     public string Publisher { get; set; }

@@ -32,13 +32,7 @@ public class BookApiController(IBookService service) :ControllerBase {
                 status = "error",
                 message = "author cannot be empty",
             });
-
-        if (int.IsNegative(dto.Quantity))
-            return BadRequest(new
-            {
-                status = "error",
-                message = "quantity cannot be negative",
-            });
+        
         if (dto.CategoryId < 0)
             return BadRequest(new
             {
@@ -47,9 +41,9 @@ public class BookApiController(IBookService service) :ControllerBase {
             });
         
         var validExtension = new List<string> { ".jpg", ".jpeg", ".png", "webp" };
-        var extension=Path.GetExtension(dto.Image.FileName).ToLower();
+        var extension=Path.GetExtension(dto.Image?.FileName)?.ToLower();
         
-        if (!validExtension.Contains(extension))
+        if (extension != null && !validExtension.Contains(extension))
             return BadRequest(new
             {
                 status = "error",
@@ -122,13 +116,7 @@ public class BookApiController(IBookService service) :ControllerBase {
                 status = "error",
                 message = "author cannot be empty",
             });
-
-        if (int.IsNegative(dto.Quantity))
-            return BadRequest(new
-            {
-                status = "error",
-                message = "quantity cannot be negative",
-            });
+        
         if (dto.CategoryId < 0)
             return BadRequest(new
             {

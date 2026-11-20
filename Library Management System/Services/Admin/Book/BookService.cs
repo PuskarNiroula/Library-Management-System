@@ -31,8 +31,8 @@ public class BookService(ApplicationDbContext dbContext) : IBookService
             // Create inventory along with the book
             BookInventory = new BookInventory
             {
-                TotalQuantity = createBookDto.Quantity,
-                AvailableQuantity = createBookDto.Quantity,
+                TotalQuantity = createBookDto.Quantity??0,
+                AvailableQuantity = createBookDto.Quantity??0,
                 RentedQuantity = 0,
                 SoldQuantity = 0
             }
@@ -51,7 +51,6 @@ public class BookService(ApplicationDbContext dbContext) : IBookService
     public async Task<bool> UpdateBookAsync(UpdateBookDto updateBookDto)
     {
         var book = await GetBookAsync(updateBookDto.BookId);
-        if (book == null) return false;
         //here it must have a try catch
         if (updateBookDto.ImageUrl != null && !string.IsNullOrEmpty(book.ImageUrl))
         {

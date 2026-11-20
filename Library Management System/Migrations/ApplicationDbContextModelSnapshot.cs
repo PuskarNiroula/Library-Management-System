@@ -180,7 +180,7 @@ namespace Library_Management_System.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime>("Date")
-                        .HasColumnType("datetime");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int?>("FineId")
                         .HasColumnType("int");
