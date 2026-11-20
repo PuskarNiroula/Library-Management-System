@@ -152,55 +152,29 @@ namespace Library_Management_System.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("FineId"));
 
-                    b.Property<string>("Cause")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(65,30)");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsPaid")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("LateDays")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("PaidDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("RentLogId")
+                        .HasColumnType("int");
 
                     b.HasKey("FineId");
 
+                    b.HasIndex("RentLogId");
+
                     b.ToTable("Fines");
-                });
-
-            modelBuilder.Entity("Library_Management_System.Models.Income", b =>
-                {
-                    b.Property<int>("IncomeId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IncomeId"));
-
-                    b.Property<float>("Amount")
-                        .HasColumnType("float");
-
-                    b.Property<int>("BookId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("FineId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("IncomeId");
-
-                    b.HasIndex("BookId");
-
-                    b.HasIndex("FineId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Incomes");
                 });
 
             modelBuilder.Entity("Library_Management_System.Models.RentLog", b =>
@@ -211,16 +185,32 @@ namespace Library_Management_System.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("RentLogId"));
 
-                    b.Property<int>("IncomeId")
+                    b.Property<int>("ApprovedById")
                         .HasColumnType("int");
+
+                    b.Property<int>("BookId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("RentedDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("ReturnedDate")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
                     b.HasKey("RentLogId");
 
-                    b.HasIndex("IncomeId");
+                    b.HasIndex("ApprovedById");
+
+                    b.HasIndex("BookId");
+
+                    b.HasIndex("StudentId");
 
                     b.ToTable("RentLogs");
                 });
@@ -295,40 +285,42 @@ namespace Library_Management_System.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Library_Management_System.Models.Income", b =>
+            modelBuilder.Entity("Library_Management_System.Models.Fine", b =>
                 {
+                    b.HasOne("Library_Management_System.Models.RentLog", "RentLog")
+                        .WithMany()
+                        .HasForeignKey("RentLogId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RentLog");
+                });
+
+            modelBuilder.Entity("Library_Management_System.Models.RentLog", b =>
+                {
+                    b.HasOne("Library_Management_System.Models.User", "ApprovedBy")
+                        .WithMany()
+                        .HasForeignKey("ApprovedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Library_Management_System.Models.Book", "Book")
                         .WithMany()
                         .HasForeignKey("BookId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Library_Management_System.Models.Fine", "Fine")
+                    b.HasOne("Library_Management_System.Models.User", "Student")
                         .WithMany()
-                        .HasForeignKey("FineId");
-
-                    b.HasOne("Library_Management_System.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("ApprovedBy");
 
                     b.Navigation("Book");
 
-                    b.Navigation("Fine");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Library_Management_System.Models.RentLog", b =>
-                {
-                    b.HasOne("Library_Management_System.Models.Income", "Income")
-                        .WithMany()
-                        .HasForeignKey("IncomeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Income");
+                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("Library_Management_System.Models.Book", b =>

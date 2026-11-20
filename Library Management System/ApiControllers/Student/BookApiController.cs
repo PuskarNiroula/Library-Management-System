@@ -3,6 +3,7 @@ using Library_Management_System.DTOs.Book;
 using Library_Management_System.Enum;
 using Library_Management_System.Models;
 using Library_Management_System.Services.Admin.Book;
+using Library_Management_System.Services.Admin.Enum;
 using Library_Management_System.Services.Student;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -62,6 +63,26 @@ public class BookApiController(IBookService service,IBookInventoryService bookIn
         {
             BookId = rentBookDto.BookId,
             RequestType = "RENT",
+            UserId = int.Parse(userId)
+        };
+
+        var result = await bookInventoryService.RequestBookAsync(dto);
+
+        return Ok(result);
+    }
+    [Authorize]
+    [HttpPost("buy")]
+    public async Task<IActionResult> Buy([FromBody] RentBookDto rentBookDto)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (userId == null)
+            return Unauthorized();
+
+        var dto = new BookRequestDto
+        {
+            BookId = rentBookDto.BookId,
+            RequestType = RequestTypeEnum.Sale,
             UserId = int.Parse(userId)
         };
 

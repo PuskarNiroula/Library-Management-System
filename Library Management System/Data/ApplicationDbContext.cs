@@ -10,7 +10,6 @@ namespace Library_Management_System.Data
         public DbSet<Category> Category { get; set; }
         public DbSet<BookRequest> BookRequests { get; set; }
         public DbSet<Fine> Fines { get; set; }
-        public DbSet<Income> Incomes { get; set; }
         public DbSet<RentLog>  RentLogs { get; set; }
         public DbSet<BookInventory> BookInventories { get; set; }
     }

@@ -1,5 +1,6 @@
 
 using Library_Management_System.Data;
+using Library_Management_System.Services.Admin.Enum;
 using Library_Management_System.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,7 +19,7 @@ public class RequestController (ApplicationDbContext dbContext):Controller
     public async Task<IActionResult> Index()
     {
         var model = await dbContext.BookRequests
-            .Where(r=>r.Status == "pending")
+            .Where(r=>r.Status == BookRequestStatusEnum.Pending)
             .Select(r => new BookRequestViewModel
             {
                 BookRequestId = r.BookRequestId,
