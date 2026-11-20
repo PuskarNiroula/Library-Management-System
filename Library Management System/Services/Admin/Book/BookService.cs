@@ -22,17 +22,24 @@ public class BookService(ApplicationDbContext dbContext) : IBookService
             Author = createBookDto.Author,
             CategoryId = createBookDto.CategoryId,
             BookName = createBookDto.BookName,
-            Quantity = createBookDto.Quantity,
-            Price = (int) createBookDto.Price,
+            Price = (int)createBookDto.Price,
             Publisher = createBookDto.Publisher,
             ImageUrl = createBookDto.ImageUrl,
-            PublicationDate = createBookDto.PublishDate
+            PublicationDate = createBookDto.PublishDate,
+            Isbn = createBookDto.Isbn,
+
+            // Create inventory along with the book
+            BookInventory = new BookInventory
+            {
+                TotalQuantity = createBookDto.Quantity??0,
+                AvailableQuantity = createBookDto.Quantity??0,
+                RentedQuantity = 0,
+                SoldQuantity = 0
+            }
         };
-        if (!string.IsNullOrEmpty(createBookDto.Author))
-            book.Author = createBookDto.Author;
-        if (!string.IsNullOrEmpty(createBookDto.Isbn))
-            book.Isbn = createBookDto.Isbn;
+
         _context.Books.Add(book);
+
         return await _context.SaveChangesAsync() > 0;
     }
 
@@ -44,7 +51,6 @@ public class BookService(ApplicationDbContext dbContext) : IBookService
     public async Task<bool> UpdateBookAsync(UpdateBookDto updateBookDto)
     {
         var book = await GetBookAsync(updateBookDto.BookId);
-        if (book == null) return false;
         //here it must have a try catch
         if (updateBookDto.ImageUrl != null && !string.IsNullOrEmpty(book.ImageUrl))
         {
@@ -57,7 +63,6 @@ public class BookService(ApplicationDbContext dbContext) : IBookService
         book.BookId = updateBookDto.BookId;
         book.CategoryId = updateBookDto.CategoryId;
         book.BookName = updateBookDto.BookName;
-        book.Quantity = updateBookDto.Quantity;
         book.Price =(int) updateBookDto.Price;
         if(updateBookDto.ImageUrl!=null)
             book.ImageUrl = updateBookDto.ImageUrl;
@@ -68,6 +73,8 @@ public class BookService(ApplicationDbContext dbContext) : IBookService
             book.Isbn = updateBookDto.Isbn;
         book.PublicationDate = updateBookDto.PublishDate;
         _context.Books.Update(book);
+        
+        
         return await _context.SaveChangesAsync() > 0;
     }
 

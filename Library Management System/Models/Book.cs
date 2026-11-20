@@ -32,9 +32,9 @@ public partial class Book
     public decimal Price { get; set; }
 
     public DateOnly? PublicationDate { get; set; }
-
-    [Required]
-    public int Quantity { get; set; }
+    
+    
+    public BookInventory BookInventory { get; set; }
 }
 
 
