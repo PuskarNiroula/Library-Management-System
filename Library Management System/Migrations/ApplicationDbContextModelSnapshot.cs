@@ -49,7 +49,7 @@ namespace Library_Management_System.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<decimal>("Price")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<DateOnly?>("PublicationDate")
                         .HasColumnType("date");
@@ -144,6 +144,35 @@ namespace Library_Management_System.Migrations
                     b.ToTable("Category");
                 });
 
+            modelBuilder.Entity("Library_Management_System.Models.DbModels.SalesRecord", b =>
+                {
+                    b.Property<int>("SalesRecordId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("SalesRecordId"));
+
+                    b.Property<int>("BookId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("SalesRecordId");
+
+                    b.HasIndex("BookId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.ToTable("SalesRecords");
+                });
+
             modelBuilder.Entity("Library_Management_System.Models.Fine", b =>
                 {
                     b.Property<int>("FineId")
@@ -153,13 +182,10 @@ namespace Library_Management_System.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("FineId"));
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime(6)");
-
-                    b.Property<bool>("IsPaid")
-                        .HasColumnType("tinyint(1)");
 
                     b.Property<int>("LateDays")
                         .HasColumnType("int");
@@ -283,6 +309,25 @@ namespace Library_Management_System.Migrations
                     b.Navigation("Book");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Library_Management_System.Models.DbModels.SalesRecord", b =>
+                {
+                    b.HasOne("Library_Management_System.Models.Book", "Book")
+                        .WithMany()
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Library_Management_System.Models.User", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Book");
+
+                    b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("Library_Management_System.Models.Fine", b =>

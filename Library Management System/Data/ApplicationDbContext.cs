@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Library_Management_System.Models;
+using Library_Management_System.Models.DbModels;
 
 namespace Library_Management_System.Data
 {
@@ -12,5 +13,6 @@ namespace Library_Management_System.Data
         public DbSet<Fine> Fines { get; set; }
         public DbSet<RentLog>  RentLogs { get; set; }
         public DbSet<BookInventory> BookInventories { get; set; }
+        public DbSet<SalesRecord>  SalesRecords { get; set; }
     }
 }

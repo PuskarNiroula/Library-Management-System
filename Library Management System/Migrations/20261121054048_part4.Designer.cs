@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Library_Management_System.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251103164917_categoryUpdate")]
-    partial class categoryUpdate
+    [Migration("20261121054048_part4")]
+    partial class part4
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -44,9 +44,6 @@ namespace Library_Management_System.Migrations
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Category_Id")
-                        .HasColumnType("int");
-
                     b.Property<string>("ImageUrl")
                         .HasColumnType("longtext");
 
@@ -54,8 +51,8 @@ namespace Library_Management_System.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<float>("Price")
-                        .HasColumnType("float");
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<DateOnly?>("PublicationDate")
                         .HasColumnType("date");
@@ -64,14 +61,42 @@ namespace Library_Management_System.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
                     b.HasKey("BookId");
 
-                    b.HasIndex("Category_Id");
+                    b.HasIndex("CategoryId");
 
                     b.ToTable("Books");
+                });
+
+            modelBuilder.Entity("Library_Management_System.Models.BookInventory", b =>
+                {
+                    b.Property<int>("BookInventoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("BookInventoryId"));
+
+                    b.Property<int>("AvailableQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BookId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RentedQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SoldQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalQuantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("BookInventoryId");
+
+                    b.HasIndex("BookId")
+                        .IsUnique();
+
+                    b.ToTable("BookInventories");
                 });
 
             modelBuilder.Entity("Library_Management_System.Models.BookRequest", b =>
@@ -85,24 +110,22 @@ namespace Library_Management_System.Migrations
                     b.Property<int>("BookId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Book_id")
-                        .HasColumnType("int");
-
                     b.Property<string>("RequestType")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.Property<int>("User_id")
-                        .HasColumnType("int");
-
                     b.HasKey("BookRequestId");
 
-                    b.HasIndex("Book_id");
+                    b.HasIndex("BookId");
 
-                    b.HasIndex("User_id");
+                    b.HasIndex("UserId");
 
                     b.ToTable("BookRequests");
                 });
@@ -124,6 +147,35 @@ namespace Library_Management_System.Migrations
                     b.ToTable("Category");
                 });
 
+            modelBuilder.Entity("Library_Management_System.Models.DbModels.SalesRecord", b =>
+                {
+                    b.Property<int>("SalesRecordId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("SalesRecordId"));
+
+                    b.Property<int>("BookId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("SalesRecordId");
+
+                    b.HasIndex("BookId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.ToTable("SalesRecords");
+                });
+
             modelBuilder.Entity("Library_Management_System.Models.Fine", b =>
                 {
                     b.Property<int>("FineId")
@@ -132,55 +184,26 @@ namespace Library_Management_System.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("FineId"));
 
-                    b.Property<string>("Cause")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18, 2)");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("LateDays")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("PaidDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("RentLogId")
+                        .HasColumnType("int");
 
                     b.HasKey("FineId");
 
+                    b.HasIndex("RentLogId");
+
                     b.ToTable("Fines");
-                });
-
-            modelBuilder.Entity("Library_Management_System.Models.Income", b =>
-                {
-                    b.Property<int>("IncomeId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IncomeId"));
-
-                    b.Property<float>("Amount")
-                        .HasColumnType("float");
-
-                    b.Property<int>("BookId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("FineId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("IncomeId");
-
-                    b.HasIndex("BookId");
-
-                    b.HasIndex("FineId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Incomes");
                 });
 
             modelBuilder.Entity("Library_Management_System.Models.RentLog", b =>
@@ -191,16 +214,32 @@ namespace Library_Management_System.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("RentLogId"));
 
-                    b.Property<int>("IncomeId")
+                    b.Property<int>("ApprovedById")
                         .HasColumnType("int");
+
+                    b.Property<int>("BookId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("RentedDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("ReturnedDate")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
                     b.HasKey("RentLogId");
 
-                    b.HasIndex("IncomeId");
+                    b.HasIndex("ApprovedById");
+
+                    b.HasIndex("BookId");
+
+                    b.HasIndex("StudentId");
 
                     b.ToTable("RentLogs");
                 });
@@ -238,43 +277,31 @@ namespace Library_Management_System.Migrations
                 {
                     b.HasOne("Library_Management_System.Models.Category", "Category")
                         .WithMany("Books")
-                        .HasForeignKey("Category_Id")
+                        .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("Library_Management_System.Models.BookRequest", b =>
+            modelBuilder.Entity("Library_Management_System.Models.BookInventory", b =>
                 {
                     b.HasOne("Library_Management_System.Models.Book", "Book")
-                        .WithMany()
-                        .HasForeignKey("Book_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Library_Management_System.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("User_id")
+                        .WithOne("BookInventory")
+                        .HasForeignKey("Library_Management_System.Models.BookInventory", "BookId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Book");
-
-                    b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Library_Management_System.Models.Income", b =>
+            modelBuilder.Entity("Library_Management_System.Models.BookRequest", b =>
                 {
                     b.HasOne("Library_Management_System.Models.Book", "Book")
                         .WithMany()
                         .HasForeignKey("BookId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("Library_Management_System.Models.Fine", "Fine")
-                        .WithMany()
-                        .HasForeignKey("FineId");
 
                     b.HasOne("Library_Management_System.Models.User", "User")
                         .WithMany()
@@ -284,20 +311,70 @@ namespace Library_Management_System.Migrations
 
                     b.Navigation("Book");
 
-                    b.Navigation("Fine");
-
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Library_Management_System.Models.DbModels.SalesRecord", b =>
+                {
+                    b.HasOne("Library_Management_System.Models.Book", "Book")
+                        .WithMany()
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Library_Management_System.Models.User", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Book");
+
+                    b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("Library_Management_System.Models.Fine", b =>
+                {
+                    b.HasOne("Library_Management_System.Models.RentLog", "RentLog")
+                        .WithMany()
+                        .HasForeignKey("RentLogId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RentLog");
                 });
 
             modelBuilder.Entity("Library_Management_System.Models.RentLog", b =>
                 {
-                    b.HasOne("Library_Management_System.Models.Income", "Income")
+                    b.HasOne("Library_Management_System.Models.User", "ApprovedBy")
                         .WithMany()
-                        .HasForeignKey("IncomeId")
+                        .HasForeignKey("ApprovedById")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Income");
+                    b.HasOne("Library_Management_System.Models.Book", "Book")
+                        .WithMany()
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Library_Management_System.Models.User", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApprovedBy");
+
+                    b.Navigation("Book");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("Library_Management_System.Models.Book", b =>
+                {
+                    b.Navigation("BookInventory")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Library_Management_System.Models.Category", b =>

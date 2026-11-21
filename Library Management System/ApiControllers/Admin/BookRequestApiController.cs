@@ -69,6 +69,7 @@ public class BookRequestApiController(IBookRequestService bookRequestService,App
             BookName = m.Book.BookName,
             BookId = m.BookId,
             Isbn = m.Book.Isbn,
+            type = m.RequestType,
             Price = m.Book.Price
         }).ToListAsync();
         

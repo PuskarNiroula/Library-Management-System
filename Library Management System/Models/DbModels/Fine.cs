@@ -15,6 +15,7 @@ public class Fine
     public RentLog RentLog { get; set; }
 
     [Required]
+    [Column(TypeName = "decimal(18, 2)")]
     public decimal Amount { get; set; }
 
     [Required]
@@ -22,8 +23,6 @@ public class Fine
 
     [Required]
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
-
-    public bool IsPaid { get; set; } = false;
 
     public DateTime? PaidDate { get; set; }
 }

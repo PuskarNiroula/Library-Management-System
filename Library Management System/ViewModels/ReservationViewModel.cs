@@ -6,6 +6,7 @@ public class ReservationViewModel
     public int BookId { get; set; }
     public string BookName { get; set; }
     public string? Isbn { get; set; }
+    public string type {get; set;}
     public decimal Price { get; set; }
     
 }
