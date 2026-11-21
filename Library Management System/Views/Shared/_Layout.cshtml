@@ -17,7 +17,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Library Management System</title>
+    <title>@(ViewData["Title"]??"")- Library Management System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -235,14 +235,7 @@
 
                     <div id="setupSubmenu"
                          class="submenu @(isSetupActive ? "" : "hidden")">
-
-                        <a asp-controller="Settings"
-                           asp-action="Index"
-                           class="submenu-link @(activeMenu == "Setup" ? "active" : "")">
-                            <i class="bi bi-gear"></i>
-                            General Settings
-                        </a>
-
+                        
                         <a asp-controller="Settings"
                            asp-action="LibrarySettings"
                            class="submenu-link @(activeMenu == "LibrarySettings" ? "active" : "")">
@@ -313,7 +306,7 @@
                 <div class="hidden sm:block">
 
                     <h1 class="text-lg font-bold text-slate-800 mb-0">
-                        @ViewData["PageHeading"] ?? ViewData["Title"]
+                        @(ViewData["PageHeading"] ?? ViewData["Title"])
                     </h1>
 
                     <p class="text-xs text-slate-400 mb-0">
