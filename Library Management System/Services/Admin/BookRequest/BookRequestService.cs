@@ -1,6 +1,7 @@
 using Library_Management_System.Data;
 using Library_Management_System.DTOs.Checkout;
 using Library_Management_System.Models;
+using Library_Management_System.Models.DbModels;
 using Library_Management_System.Services.Admin.Enum;
 using Library_Management_System.Services.Admin.Exception;
 using Microsoft.EntityFrameworkCore;
@@ -82,8 +83,9 @@ public class BookRequestService(ApplicationDbContext dbContext) : IBookRequestSe
               
               inventory.AvailableQuantity--;
 
-              if (book.TransactionType== RequestTypeEnum.Rent)
+              if (book.TransactionType.ToUpper()== RequestTypeEnum.Rent)
               {
+              
 
                   inventory.RentedQuantity++;
                   var logs = new RentLog
@@ -97,8 +99,24 @@ public class BookRequestService(ApplicationDbContext dbContext) : IBookRequestSe
                   await dbContext.RentLogs.AddAsync(logs);
 
               }
-              else if (book.TransactionType == RequestTypeEnum.Sale)
+              else if (book.TransactionType.ToUpper() == RequestTypeEnum.Sale)
               {
+
+
+                  var existingBook = await dbContext.Books
+                      .FindAsync(book.BookId);
+
+                  if (existingBook == null)
+                      throw new System.Exception($"Book {book.BookId} not found.");
+                  var sales = new SalesRecord
+                  {
+                      BookId = book.BookId,
+                      CustomerId = dto.StudentId,
+                      Date = DateTime.Now,
+                      Price =existingBook.Price,
+                  };
+                  dbContext.Add(sales);
+                  
                   inventory.SoldQuantity++;
                   inventory.TotalQuantity--;
               }

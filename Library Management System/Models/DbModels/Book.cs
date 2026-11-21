@@ -29,6 +29,7 @@ public partial class Book
     public Category? Category { get; set; }
 
     [Required]
+    [Column(TypeName = "decimal(18, 2)")]
     public decimal Price { get; set; }
 
     public DateOnly? PublicationDate { get; set; }

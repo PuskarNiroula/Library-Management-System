@@ -301,7 +301,8 @@ List<Book> books = ViewBag.Books as List<Book> ?? new List<Book>();
             }
         }
 
-        function addBookRow(bookId = null, reservationId = null) {
+
+        function addBookRow(bookId = null, reservationId = null, transactionType = "Rent") {
             $(".emptyRow").remove();
 
             const row = $(bookTemplate.content.cloneNode(true));
@@ -326,6 +327,7 @@ List<Book> books = ViewBag.Books as List<Book> ?? new List<Book>();
                 bookSelect.attr("data-reservation-id", reservationId ?? "");
 
                 row.find(".transactionType")
+                    .val(transactionType.toUpperCase() === "SALE" ? "Sale" : "Rent")
                     .prop("disabled", true)
                     .attr("title", "Transaction type cannot be changed for reserved books");
 
@@ -346,6 +348,7 @@ List<Book> books = ViewBag.Books as List<Book> ?? new List<Book>();
             updateSummary();
             return true;
         }
+
 
         function updateBookDetails(row) {
             const selectedOption = row.find(".bookSelect option:selected");
@@ -447,7 +450,8 @@ List<Book> books = ViewBag.Books as List<Book> ?? new List<Book>();
                     if (!alreadyAdded) {
                         addBookRow(
                             reservation.bookId,
-                            reservation.reservationId
+                            reservation.reservationId,
+                            reservation.type
                         );
                     }
                 });
