@@ -1,7 +1,15 @@
+
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 @{
     var activeMenu = ViewData["ActiveMenu"]?.ToString() ?? "";
+    var userName = User.Identity?.Name ?? "Administrator";
+
+    var circulationMenus = new[] { "Circulation", "CheckOut", "CheckIn", "Renew" };
+    var setupMenus = new[] { "Setup", "FineSettings", "LibrarySettings", "GeneralSettings" };
+
+    var isCirculationActive = circulationMenus.Contains(activeMenu);
+    var isSetupActive = setupMenus.Contains(activeMenu);
 }
 
 <!DOCTYPE html>
@@ -20,187 +28,499 @@
     <link rel="stylesheet" href="~/css/admin.css" />
     @await RenderSectionAsync("HeadScript", false)
 </head>
-<body  class="bg-gray-100 font-sans">
+<body class="bg-slate-50 font-sans antialiased">
 
-<div class="flex min-h-screen w-full">
+<div class="min-h-screen flex">
 
-
-<aside id="sidebar" class="w-64 bg-white shadow-lg p-5 space-y-2 sticky top-0 h-screen overflow-y-auto">
-
-    <h3 class="text-gray-500 uppercase text-xs font-semibold mb-4 tracking-wider">
-        Main Menu
-    </h3>
-
-    <a asp-controller="Home" asp-action="Index"
-       class="sidebar-link @(activeMenu == "Dashboard" ? "active" : "")">
-        <i class="bi bi-speedometer2 me-2"></i> Dashboard
-    </a>
-
-    <div class="pt-4">
-        <h3 class="text-gray-400 uppercase text-xs font-semibold mb-2 tracking-wider">
-            Library Management
-        </h3>
-
-        <a asp-controller="Book" asp-action="Index"
-           class="sidebar-link @(activeMenu == "Book" ? "active" : "")">
-            <i class="bi bi-book-half me-2"></i> Books
-        </a>
-
-        <a asp-controller="Category" asp-action="Index"
-           class="sidebar-link @(activeMenu == "Category" ? "active" : "")">
-            <i class="bi bi-bookmark-plus me-2"></i> Categories
-        </a>
-
-        <a asp-controller="User" asp-action="Index"
-           class="sidebar-link @(activeMenu == "Users" ? "active" : "")">
-            <i class="bi bi-people-fill me-2"></i> Users
-        </a>
+    <div id="sidebarOverlay"
+         class="fixed inset-0 bg-slate-950/50 z-30 hidden lg:hidden">
     </div>
 
-    <div class="pt-4">
-        <h3 class="text-gray-400 uppercase text-xs font-semibold mb-2 tracking-wider">
-            Transactions
-        </h3>
+    <aside id="sidebar"
+           class="fixed lg:sticky top-0 left-0 z-40 w-72 h-screen bg-white border-r border-slate-200 flex flex-col transition-transform duration-300 -translate-x-full lg:translate-x-0">
 
-        <a asp-controller="Request" asp-action="Index"
-           class="sidebar-link @(activeMenu == "Request" ? "active" : "")">
-            <i class="bi bi-inbox me-2"></i> Requests
-        </a>
+        <div class="h-20 px-6 flex items-center border-b border-slate-100 shrink-0">
 
-        
-        <div class="space-y-1">
+            <a asp-controller="Home"
+               asp-action="Index"
+               class="flex items-center gap-3 no-underline">
 
-            <button type="button" id="circulationToggle"
-                    class="sidebar-link w-full flex items-center justify-between @(activeMenu == "Circulation" || activeMenu == "CheckOut" || activeMenu == "CheckIn" || activeMenu == "Renew" ? "active" : "")">
-                <span>
-                    <i class="bi bi-arrow-left-right me-2"></i> Circulation
-                </span>
-                <i class="bi bi-chevron-down text-xs transition-transform" id="circulationArrow"></i>
+                <div class="w-11 h-11 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-200">
+                    <i class="bi bi-book-half text-white text-xl"></i>
+                </div>
+
+                <div>
+                    <h2 class="text-lg font-extrabold text-slate-800 leading-tight mb-0">
+                        Our Library
+                    </h2>
+                    <p class="text-[11px] text-slate-400 font-medium tracking-wider mb-0">
+                        MANAGEMENT SYSTEM
+                    </p>
+                </div>
+
+            </a>
+
+            <button id="closeSidebar"
+                    type="button"
+                    class="ml-auto lg:hidden text-slate-400 hover:text-slate-700">
+                <i class="bi bi-x-lg text-xl"></i>
             </button>
 
-            <div id="circulationSubmenu"
-                 class="pl-8 space-y-1 @(activeMenu == "Circulation" || activeMenu == "CheckOut" || activeMenu == "CheckIn" || activeMenu == "Renew" ? "" : "hidden")">
-
-                <a asp-controller="Circulation" asp-action="CheckOut"
-                   class="sidebar-link text-sm @(activeMenu == "CheckOut" ? "active" : "")">
-                    <i class="bi bi-box-arrow-up-right me-2"></i> Check Out
-                </a>
-
-                <a asp-controller="Circulation" asp-action="CheckIn"
-                   class="sidebar-link text-sm @(activeMenu == "CheckIn" ? "active" : "")">
-                    <i class="bi bi-box-arrow-in-left me-2"></i> Check In
-                </a>
-
-                <a asp-controller="Circulation" asp-action="Renew"
-                   class="sidebar-link text-sm @(activeMenu == "Renew" ? "active" : "")">
-                    <i class="bi bi-arrow-repeat me-2"></i> Renew Book
-                </a>
-
-            </div>
         </div>
 
+        <div class="flex-1 overflow-y-auto px-4 py-6 custom-scrollbar">
 
-        <a asp-controller="IssuedBooks" asp-action="Index"
-           class="sidebar-link @(activeMenu == "IssuedBooks" ? "active" : "")">
-            <i class="bi bi-journal-check me-2"></i> Issued Books
-        </a>
-    </div>
+            <div class="mb-6">
 
-    <div class="pt-4">
-        <h3 class="text-gray-400 uppercase text-xs font-semibold mb-2 tracking-wider">
-            Analytics & Configuration
-        </h3>
+                <p class="px-3 mb-3 text-[11px] font-bold text-slate-400 uppercase tracking-[1.5px]">
+                    Main Menu
+                </p>
 
-        <a asp-controller="Reports" asp-action="Index"
-           class="sidebar-link @(activeMenu == "Reports" ? "active" : "")">
-            <i class="bi bi-graph-up me-2"></i> Reports
-        </a>
+                <a asp-controller="Home"
+                   asp-action="Index"
+                   class="sidebar-link @(activeMenu == "Dashboard" ? "active" : "")">
 
-        <a asp-controller="Settings" asp-action="Index"
-           class="sidebar-link @(activeMenu == "Settings" ? "active" : "")">
-            <i class="bi bi-gear-fill me-2"></i> Settings
-        </a>
-    </div>
+                    <i class="bi bi-grid-1x2-fill"></i>
+                    <span>Dashboard</span>
 
-</aside>
+                </a>
 
-    <div class="flex flex-col flex-1 w-full overflow-y-auto">
-        <nav class="bg-white shadow-md px-6 py-4 flex justify-between items-center z-10 border-b border-gray-200">
+            </div>
+
+            <div class="mb-6">
+
+                <p class="px-3 mb-3 text-[11px] font-bold text-slate-400 uppercase tracking-[1.5px]">
+                    Library Management
+                </p>
+
+                <a asp-controller="Book"
+                   asp-action="Index"
+                   class="sidebar-link @(activeMenu == "Book" ? "active" : "")">
+
+                    <i class="bi bi-book-half"></i>
+                    <span>Books</span>
+
+                </a>
+
+                <a asp-controller="Category"
+                   asp-action="Index"
+                   class="sidebar-link @(activeMenu == "Category" ? "active" : "")">
+
+                    <i class="bi bi-bookmarks-fill"></i>
+                    <span>Categories</span>
+
+                </a>
+
+                <a asp-controller="User"
+                   asp-action="Index"
+                   class="sidebar-link @(activeMenu == "Users" ? "active" : "")">
+
+                    <i class="bi bi-people-fill"></i>
+                    <span>Users</span>
+
+                </a>
+
+            </div>
+
+            <div class="mb-6">
+
+                <p class="px-3 mb-3 text-[11px] font-bold text-slate-400 uppercase tracking-[1.5px]">
+                    Transactions
+                </p>
+
+                <a asp-controller="Request"
+                   asp-action="Index"
+                   class="sidebar-link @(activeMenu == "Request" ? "active" : "")">
+
+                    <i class="bi bi-inbox-fill"></i>
+                    <span>Book Requests</span>
+
+                </a>
+
+                <div class="mb-1">
+
+                    <button type="button"
+                            id="circulationToggle"
+                            class="sidebar-link w-full justify-between @(isCirculationActive ? "active" : "")">
+
+                        <span class="flex items-center gap-3">
+                            <i class="bi bi-arrow-left-right"></i>
+                            <span>Circulation</span>
+                        </span>
+
+                        <i id="circulationArrow"
+                           class="bi bi-chevron-down text-xs transition-transform duration-300 @(isCirculationActive ? "rotate-180" : "")">
+                        </i>
+
+                    </button>
+
+                    <div id="circulationSubmenu"
+                         class="submenu @(isCirculationActive ? "" : "hidden")">
+
+                        <a asp-controller="Circulation"
+                           asp-action="CheckOut"
+                           class="submenu-link @(activeMenu == "CheckOut" ? "active" : "")">
+                            <i class="bi bi-box-arrow-up-right"></i>
+                            Check Out
+                        </a>
+
+                        <a asp-controller="Circulation"
+                           asp-action="CheckIn"
+                           class="submenu-link @(activeMenu == "CheckIn" ? "active" : "")">
+                            <i class="bi bi-box-arrow-in-left"></i>
+                            Check In
+                        </a>
+
+                        <a asp-controller="Circulation"
+                           asp-action="Renew"
+                           class="submenu-link @(activeMenu == "Renew" ? "active" : "")">
+                            <i class="bi bi-arrow-repeat"></i>
+                            Renew Book
+                        </a>
+
+                    </div>
+
+                </div>
+
+                <a asp-controller="IssuedBooks"
+                   asp-action="Index"
+                   class="sidebar-link @(activeMenu == "IssuedBooks" ? "active" : "")">
+
+                    <i class="bi bi-journal-check"></i>
+                    <span>Issued Books</span>
+
+                </a>
+
+            </div>
+
+            <div class="mb-6">
+
+                <p class="px-3 mb-3 text-[11px] font-bold text-slate-400 uppercase tracking-[1.5px]">
+                    Analytics
+                </p>
+
+                <a asp-controller="Reports"
+                   asp-action="Index"
+                   class="sidebar-link @(activeMenu == "Reports" ? "active" : "")">
+
+                    <i class="bi bi-bar-chart-line-fill"></i>
+                    <span>Reports</span>
+
+                </a>
+
+            </div>
+
+            <div class="mb-6">
+
+                <p class="px-3 mb-3 text-[11px] font-bold text-slate-400 uppercase tracking-[1.5px]">
+                    Configuration
+                </p>
+
+                <div class="mb-1">
+
+                    <button type="button"
+                            id="setupToggle"
+                            class="sidebar-link w-full justify-between @(isSetupActive ? "active" : "")">
+
+                        <span class="flex items-center gap-3">
+                            <i class="bi bi-sliders"></i>
+                            <span>Setup</span>
+                        </span>
+
+                        <i id="setupArrow"
+                           class="bi bi-chevron-down text-xs transition-transform duration-300 @(isSetupActive ? "rotate-180" : "")">
+                        </i>
+
+                    </button>
+
+                    <div id="setupSubmenu"
+                         class="submenu @(isSetupActive ? "" : "hidden")">
+
+                        <a asp-controller="Settings"
+                           asp-action="Index"
+                           class="submenu-link @(activeMenu == "Setup" ? "active" : "")">
+                            <i class="bi bi-gear"></i>
+                            General Settings
+                        </a>
+
+                        <a asp-controller="Settings"
+                           asp-action="LibrarySettings"
+                           class="submenu-link @(activeMenu == "LibrarySettings" ? "active" : "")">
+                            <i class="bi bi-building-gear"></i>
+                            Library Settings
+                        </a>
+
+                        <a asp-controller="Settings"
+                           asp-action="FineSettings"
+                           class="submenu-link @(activeMenu == "FineSettings" ? "active" : "")">
+                            <i class="bi bi-cash-coin"></i>
+                            Fine Settings
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="p-4 border-t border-slate-100 shrink-0">
+
+            <div class="bg-indigo-50 rounded-xl p-4">
+
+                <div class="flex items-center gap-3">
+
+                    <div class="w-9 h-9 bg-indigo-100 rounded-lg flex items-center justify-center">
+                        <i class="bi bi-headset text-indigo-600"></i>
+                    </div>
+
+                    <div>
+                        <p class="text-sm font-semibold text-slate-700 mb-0">
+                            Need Help?
+                        </p>
+                        <p class="text-xs text-slate-500 mb-0">
+                            Contact Administrator
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <p class="text-center text-[11px] text-slate-400 mt-4 mb-0">
+                Library Management System v1.0
+            </p>
+
+        </div>
+
+    </aside>
+
+    <div class="flex-1 min-w-0 flex flex-col min-h-screen">
+
+        <header class="h-20 bg-white border-b border-slate-200 sticky top-0 z-20 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
 
             <div class="flex items-center gap-4">
+
                 <button id="toggleSidebar"
-                        class="text-gray-600 hover:text-indigo-600 focus:outline-none transition">
-                    <i class="fa-solid fa-bars text-2xl"></i>
+                        type="button"
+                        class="w-10 h-10 flex items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 hover:text-indigo-600 transition">
+
+                    <i class="bi bi-list text-2xl"></i>
+
                 </button>
 
-                <div class="flex items-center gap-2 text-2xl font-bold text-indigo-600">
-                    <i class="fa-solid fa-book-open text-indigo-600"></i>
-                    <span class="hidden sm:block">Our Library</span>
-                </div>
-            </div>
-            <div class="flex items-center gap-4">
+                <div class="hidden sm:block">
 
-                <div class="hidden md:block text-gray-700">
-                    Hello, <span class="font-semibold text-indigo-600">@User.Identity?.Name</span>
-                </div>
-                    <button type="button" onclick="logout()"
-                            class="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-lg 
-                           hover:bg-indigo-700 active:bg-indigo-800 transition duration-200 shadow-sm">
-                        <i class="fa-solid fa-right-from-bracket mr-2"></i>
-                        <span class="hidden sm:inline">Logout</span>
-                    </button>
-               
-            </div>
-        </nav>
+                    <h1 class="text-lg font-bold text-slate-800 mb-0">
+                        @ViewData["PageHeading"] ?? ViewData["Title"]
+                    </h1>
 
-        <main class="flex-1 p-8 bg-gray-50">
-            @RenderBody()
+                    <p class="text-xs text-slate-400 mb-0">
+                        Library Management / Administration
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="flex items-center gap-3 sm:gap-5">
+
+                <div class="hidden md:block text-right">
+
+                    <p class="text-sm font-semibold text-slate-700 mb-0">
+                        @userName
+                    </p>
+
+                    <p class="text-xs text-slate-400 mb-0">
+                        Administrator
+                    </p>
+
+                </div>
+
+                <div class="w-10 h-10 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center">
+
+                    <span class="text-indigo-700 font-bold text-sm">
+                        @(string.IsNullOrWhiteSpace(userName) ? "A" : userName.Substring(0, 1).ToUpper())
+                    </span>
+
+                </div>
+
+                <div class="h-8 border-l border-slate-200 hidden sm:block"></div>
+
+                <button type="button"
+                        onclick="logout()"
+                        class="flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-lg bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 transition font-semibold text-sm">
+
+                    <i class="bi bi-box-arrow-right text-lg"></i>
+
+                    <span class="hidden sm:inline">
+                        Logout
+                    </span>
+
+                </button>
+
+            </div>
+
+        </header>
+
+        <main class="flex-1 p-4 sm:p-6 lg:p-8">
+
+            <div class="max-w-[1600px] mx-auto">
+
+                @RenderBody()
+
+            </div>
+
         </main>
+
+        <footer class="bg-white border-t border-slate-200 px-6 py-4">
+
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400">
+
+                <p class="mb-0">
+                    &copy; @DateTime.Now.Year Library Management System. All rights reserved.
+                </p>
+
+                <p class="mb-0">
+                    Designed for efficient library management.
+                </p>
+
+            </div>
+
+        </footer>
+
     </div>
-   
+
 </div>
+
+
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="/js/AuthHelper.js"></script>
+
 <script>
-        const sidebar = document.getElementById('sidebar');
-        const toggleBtn = document.getElementById('toggleSidebar');
-        toggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('hidden');
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const sidebar = document.getElementById("sidebar");
+        const toggleBtn = document.getElementById("toggleSidebar");
+        const closeBtn = document.getElementById("closeSidebar");
+        const overlay = document.getElementById("sidebarOverlay");
+
+        const circulationToggle = document.getElementById("circulationToggle");
+        const circulationSubmenu = document.getElementById("circulationSubmenu");
+        const circulationArrow = document.getElementById("circulationArrow");
+
+        const setupToggle = document.getElementById("setupToggle");
+        const setupSubmenu = document.getElementById("setupSubmenu");
+        const setupArrow = document.getElementById("setupArrow");
+
+        function isMobile() {
+            return window.innerWidth < 1024;
+        }
+
+        function openSidebar() {
+            sidebar.classList.remove("-translate-x-full");
+            overlay.classList.remove("hidden");
+        }
+
+        function closeSidebar() {
+            sidebar.classList.add("-translate-x-full");
+            overlay.classList.add("hidden");
+        }
+
+        toggleBtn?.addEventListener("click", function () {
+
+            if (isMobile()) {
+                if (sidebar.classList.contains("-translate-x-full")) {
+                    openSidebar();
+                } else {
+                    closeSidebar();
+                }
+            } else {
+                sidebar.classList.toggle("sidebar-collapsed");
+            }
+
         });
-        
-        function logout() {
+
+        closeBtn?.addEventListener("click", closeSidebar);
+
+        overlay?.addEventListener("click", closeSidebar);
+
+        window.addEventListener("resize", function () {
+            if (!isMobile()) {
+                overlay.classList.add("hidden");
+                sidebar.classList.remove("-translate-x-full");
+            } else {
+                sidebar.classList.remove("sidebar-collapsed");
+            }
+        });
+
+        function setupDropdown(toggle, submenu, arrow) {
+
+            if (!toggle || !submenu || !arrow) return;
+
+            toggle.addEventListener("click", function () {
+
+                submenu.classList.toggle("hidden");
+                arrow.classList.toggle("rotate-180");
+
+            });
+
+        }
+
+        setupDropdown(
+            circulationToggle,
+            circulationSubmenu,
+            circulationArrow
+        );
+
+        setupDropdown(
+            setupToggle,
+            setupSubmenu,
+            setupArrow
+        );
+
+    });
+
+    function logout() {
+
+        Swal.fire({
+            title: "Logout?",
+            text: "Are you sure you want to logout?",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#4f46e5",
+            cancelButtonColor: "#64748b",
+            confirmButtonText: "Yes, Logout",
+            cancelButtonText: "Cancel"
+        }).then((result) => {
+
+            if (!result.isConfirmed) return;
+
             localStorage.removeItem("token");
-            
+
             $.ajax({
                 url: "/api/auth/logout",
                 method: "POST",
                 dataType: "json",
+
                 success: function () {
-                    location.href="/";
+                    window.location.href = "/";
+                },
+
+                error: function () {
+                    window.location.href = "/";
                 }
             });
-            
-        }
+
+        });
+
+    }
 </script>
 
 @await RenderSectionAsync("Scripts", required: false)
-
-<script>
-    const circulationToggle = document.getElementById('circulationToggle');
-    const circulationSubmenu = document.getElementById('circulationSubmenu');
-    const circulationArrow = document.getElementById('circulationArrow');
-
-    circulationToggle.addEventListener('click', () => {
-        circulationSubmenu.classList.toggle('hidden');
-        circulationArrow.classList.toggle('rotate-180');
-    });
-
-    if (!circulationSubmenu.classList.contains('hidden')) {
-        circulationArrow.classList.add('rotate-180');
-    }
-</script>
 
 </body>
 </html>
