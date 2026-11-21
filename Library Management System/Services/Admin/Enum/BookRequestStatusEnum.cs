@@ -7,6 +7,7 @@ public static class BookRequestStatusEnum
     public const string Pending = "pending";
     public const string Cancelled = "cancelled";
     public const string Returned = "returned";
+    public const string Reserved = "reserved";
     
   
 }
