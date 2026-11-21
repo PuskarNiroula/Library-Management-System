@@ -1,7 +1,9 @@
 using Library_Management_System.Data;
+using Library_Management_System.DTOs.Checkout;
 using Library_Management_System.Models;
 using Library_Management_System.Services.Admin.Enum;
 using Library_Management_System.Services.Admin.Exception;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace Library_Management_System.Services.Admin.BookRequest;
@@ -31,8 +33,8 @@ public class BookRequestService(ApplicationDbContext dbContext) : IBookRequestSe
         if (request == null)
             throw new BookRequestNotFoundException(id);
 
-        if (request.Status == BookRequestStatusEnum.Approved)
-            throw new System.Exception("Request is already approved.");
+        if (request.Status != BookRequestStatusEnum.Pending)
+            throw new System.Exception("Request is already "+request.Status);
 
         var bookStock = await dbContext.BookInventories.FindAsync(request.BookId);
 
@@ -47,27 +49,72 @@ public class BookRequestService(ApplicationDbContext dbContext) : IBookRequestSe
         if (request.RequestType == RequestTypeEnum.Rent)
         {
             bookStock.RentedQuantity++;
-
-            var rentLog = new RentLog
-            {
-                BookId = request.BookId,
-                ApprovedById = userId,
-                StudentId = request.UserId,
-                Status = RentStatusEnum.Active,
-                RentedDate = DateTime.UtcNow
-            };
-
-            await dbContext.RentLogs.AddAsync(rentLog);
+            
         }
         else if (request.RequestType == RequestTypeEnum.Sale)
         {
             bookStock.SoldQuantity++;
         }
 
-        request.Status = BookRequestStatusEnum.Approved;
+        request.Status = BookRequestStatusEnum.Reserved;
 
         await dbContext.SaveChangesAsync();
 
         await transaction.CommitAsync();
+    }
+
+    public async Task CheckoutAsync(CheckoutDto dto,int approvedBy)
+    {
+        foreach (var book in dto.Books)
+        {
+            if (book.ReservationId != null)
+            {
+                var request = await dbContext.BookRequests.FindAsync(book.ReservationId);
+                if (request == null)
+                    throw new BookRequestNotFoundException(book.ReservationId ?? 0);
+                request.Status = BookRequestStatusEnum.Approved;
+            }
+
+            var inventory = await dbContext.BookInventories.Where(b => b.BookId == book.BookId).FirstOrDefaultAsync();
+              
+              if (inventory == null)
+                  throw new BookInventoryRecordNotFound(book.BookId);
+              
+              inventory.AvailableQuantity--;
+
+              if (book.TransactionType== RequestTypeEnum.Rent)
+              {
+
+                  inventory.RentedQuantity++;
+                  var logs = new RentLog
+                  {
+                      BookId = book.BookId,
+                      StudentId = dto.StudentId,
+                      ApprovedById = approvedBy,
+                      Status = RentStatusEnum.Active,
+                      RentedDate = DateTime.Now
+                  };
+                  await dbContext.RentLogs.AddAsync(logs);
+
+              }
+              else if (book.TransactionType == RequestTypeEnum.Sale)
+              {
+                  inventory.SoldQuantity++;
+                  inventory.TotalQuantity--;
+              }
+
+            
+              await dbContext.SaveChangesAsync();
+        }
+            
+            
+        
+        
+        
+    
+        
+        
+        
+        
     }
 }

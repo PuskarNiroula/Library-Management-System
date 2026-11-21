@@ -1,15 +1,19 @@
 using System.Security.Claims;
-using Library_Management_System.Helpers;
+using Library_Management_System.Data;
+using Library_Management_System.DTOs.Checkout;
 using Library_Management_System.Services.Admin.BookRequest;
+using Library_Management_System.Services.Admin.Enum;
+using Library_Management_System.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Library_Management_System.ApiControllers.Admin;
 [ApiController]
 [Route("api/book-request-api/[action]")]
 [Authorize(Roles = "Admin")]
 [AutoValidateAntiforgeryToken]
-public class BookRequestApiController(IBookRequestService bookRequestService):ControllerBase
+public class BookRequestApiController(IBookRequestService bookRequestService,ApplicationDbContext context):ControllerBase
 {
     
     [HttpPut("{id:int}")]
@@ -50,6 +54,46 @@ public class BookRequestApiController(IBookRequestService bookRequestService):Co
         catch (Exception ex)
         {
             return StatusCode(500, ex.Message);
+        }
+    }
+
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> Reservation(int id)
+    {
+        var model =await context.BookRequests.
+            Where(b => b.UserId == id)
+            .Where(b=>b.Status==BookRequestStatusEnum.Reserved)
+            .Select(m => new ReservationViewModel
+        {
+            ReservationId = m.BookRequestId,
+            BookName = m.Book.BookName,
+            BookId = m.BookId,
+            Isbn = m.Book.Isbn,
+            Price = m.Book.Price
+        }).ToListAsync();
+        
+        return Ok(model);
+    }
+    
+   
+    [HttpPost]
+    public async Task<IActionResult> Checkout([FromBody] CheckoutDto checkoutDto)
+    {
+        try
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+                throw new UnauthorizedAccessException();
+            await bookRequestService.CheckoutAsync(checkoutDto, int.Parse(userId));
+
+            return Ok(new
+            {
+                message = "Checkout completed successfully."
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ex);
         }
     }
 }

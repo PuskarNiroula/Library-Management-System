@@ -1,0 +1,672 @@
+@using Library_Management_System.Models
+
+@{
+ViewData["Title"] = "Check Out";
+
+List<User> students = ViewBag.Students as List<User> ?? new List<User>();
+List<Book> books = ViewBag.Books as List<Book> ?? new List<Book>();
+}
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h3 class="fw-bold mb-1">Book Check Out</h3>
+                    <p class="text-muted mb-0">Issue or sell books to library students</p>
+                </div>
+                <span class="badge bg-primary fs-6 p-2">
+                    <i class="bi bi-arrow-left-right me-1"></i> Circulation
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <form id="checkoutForm">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-person-fill me-2"></i> Student Information
+                </h5>
+            </div>
+
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="StudentId" class="form-label">Select Student</label>
+
+                        <select class="form-select" id="StudentId" name="StudentId" required>
+                            <option value="">Select a student</option>
+
+                            @foreach (User student in students)
+                            {
+                            <option value="@student.Id">@student.FullName</option>
+                            }
+                        </select>
+
+                        <span class="text-danger small" id="StudentIdError"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="CheckoutDate" class="form-label">Checkout Date</label>
+                        <input type="date"
+                               class="form-control"
+                               id="CheckoutDate"
+                               value="@DateTime.Today.ToString("yyyy-MM-dd")"
+                               readonly />
+                    </div>
+                </div>
+
+                <div id="studentInfo" class="alert alert-light border mt-3 mb-0 d-none">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <small class="text-muted">Student Name</small>
+                            <div class="fw-semibold" id="selectedStudentName">-</div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <small class="text-muted">Reserved Books</small>
+                            <div class="fw-semibold" id="reservedCount">0</div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <small class="text-muted">Selected Books</small>
+                            <div class="fw-semibold" id="selectedCount">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-bookmark-check text-primary me-2"></i>
+                    Reserved Books
+                </h5>
+
+                <span class="badge bg-info" id="reservationBadge">0 Reserved</span>
+            </div>
+
+            <div class="card-body">
+                <div id="reservationLoading" class="text-center py-3 d-none">
+                    <div class="spinner-border text-primary"></div>
+                    <p class="text-muted mt-2 mb-0">Loading reserved books...</p>
+                </div>
+
+                <div id="noReservations" class="text-center py-4 text-muted">
+                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                    Select a student to check their reservations.
+                </div>
+
+                <div class="table-responsive d-none" id="reservationTableContainer">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Book Name</th>
+                            <th>ISBN</th>
+                            <th>Price</th>
+                            <th>Reservation Date</th>
+                            <th>Status</th>
+                        </tr>
+                        </thead>
+
+                        <tbody id="reservationTableBody"></tbody>
+                    </table>
+
+                    <div class="alert alert-info mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Reserved books are automatically included in the checkout list.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-cart-plus text-primary me-2"></i>
+                    Books to Check Out
+                </h5>
+
+                <button type="button" class="btn btn-sm btn-primary" id="addBookBtn">
+                    <i class="bi bi-plus-lg me-1"></i> Add Book
+                </button>
+            </div>
+
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead class="table-light">
+                        <tr>
+                            <th style="min-width:220px;">Book</th>
+                            <th style="min-width:130px;">ISBN</th>
+                            <th style="min-width:120px;">Price</th>
+                            <th style="min-width:130px;">Transaction</th>
+                            <th style="min-width:110px;">Amount</th>
+                            <th>Action</th>
+                        </tr>
+                        </thead>
+
+                        <tbody id="bookTableBody">
+                        <tr class="emptyRow">
+                            <td colspan="6" class="text-center text-muted py-4">
+                                Select a student or click Add Book to continue.
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <span class="text-danger small" id="BooksError"></span>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row justify-content-end">
+                    <div class="col-md-5 col-lg-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Total Books</span>
+                            <strong id="totalBooks">0</strong>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Rental Amount</span>
+                            <strong id="rentalAmount">0.00</strong>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="text-muted">Sale Amount</span>
+                            <strong id="saleAmount">0.00</strong>
+                        </div>
+
+                        <hr />
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Total Amount</h5>
+                            <h4 class="text-primary fw-bold mb-0" id="grandTotal">0.00</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mb-5">
+            <a asp-controller="Circulation"
+               asp-action="Index"
+               class="btn btn-outline-secondary">
+                Cancel
+            </a>
+
+            <button type="submit" class="btn btn-success px-4" id="checkoutBtn">
+                <i class="bi bi-check-circle me-1"></i> Complete Check Out
+            </button>
+        </div>
+    </form>
+</div>
+
+<template id="bookRowTemplate">
+    <tr class="bookRow">
+        <td>
+            <select class="form-select bookSelect" required>
+                <option value="">Select Book</option>
+
+                @foreach (var book in books)
+                {
+                <option value="@book.BookId"
+                        data-isbn="@book.Isbn"
+                        data-price="@book.Price">
+                    @book.BookName
+                </option>
+                }
+            </select>
+        </td>
+
+        <td>
+            <input type="text" class="form-control isbnField" readonly />
+        </td>
+
+        <td>
+            <input type="number" class="form-control priceField" step="0.01" readonly />
+        </td>
+
+        <td>
+            <select class="form-select transactionType">
+                <option value="Rent">Rent</option>
+                <option value="Sale">Sale</option>
+            </select>
+        </td>
+
+        <td>
+            <strong class="rowAmount">0.00</strong>
+        </td>
+
+        <td>
+            <button type="button" class="btn btn-sm btn-outline-danger removeBook">
+                <i class="bi bi-trash"></i>
+            </button>
+        </td>
+    </tr>
+</template>
+
+<script>
+    $(document).ready(function () {
+        let reservations = [];
+        let reservationRequestId = 0;
+
+        const bookTableBody = $("#bookTableBody");
+        const bookTemplate = document.getElementById("bookRowTemplate");
+
+        function updateSummary() {
+            let totalBooks = 0;
+            let rentalAmount = 0;
+            let saleAmount = 0;
+
+            $(".bookRow").each(function () {
+                const row = $(this);
+                const price = Number(row.find(".priceField").val()) || 0;
+                const type = row.find(".transactionType").val();
+
+                totalBooks++;
+
+                let amount = 0;
+
+                if (type === "Sale") {
+                    amount = price;
+                    saleAmount += amount;
+                } else {
+                    rentalAmount += 0;
+                }
+
+                row.find(".rowAmount").text(amount.toFixed(2));
+            });
+
+            $("#totalBooks").text(totalBooks);
+            $("#selectedCount").text(totalBooks);
+            $("#rentalAmount").text(rentalAmount.toFixed(2));
+            $("#saleAmount").text(saleAmount.toFixed(2));
+            $("#grandTotal").text((rentalAmount + saleAmount).toFixed(2));
+        }
+
+        function showEmptyBooksMessage() {
+            if ($(".bookRow").length === 0) {
+                bookTableBody.html(`
+                    <tr class="emptyRow">
+                        <td colspan="6" class="text-center text-muted py-4">
+                            No books added yet. Click Add Book to continue.
+                        </td>
+                    </tr>
+                `);
+            }
+        }
+
+        function addBookRow(bookId = null, reservationId = null) {
+            $(".emptyRow").remove();
+
+            const row = $(bookTemplate.content.cloneNode(true));
+            const bookSelect = row.find(".bookSelect");
+
+            if (bookId !== null && bookId !== undefined) {
+                bookSelect.val(String(bookId));
+
+                if (!bookSelect.val()) {
+                    Swal.fire(
+                        "Book Unavailable",
+                        "A reserved book is not present in the available book list. Please check its inventory.",
+                        "warning"
+                    );
+
+                    showEmptyBooksMessage();
+                    return false;
+                }
+
+                bookSelect.prop("disabled", true);
+                bookSelect.attr("data-reserved", "true");
+                bookSelect.attr("data-reservation-id", reservationId ?? "");
+
+                row.find(".transactionType")
+                    .prop("disabled", true)
+                    .attr("title", "Transaction type cannot be changed for reserved books");
+
+                row.find(".removeBook")
+                    .prop("disabled", true)
+                    .attr("title", "Reserved books must be checked out")
+                    .html('<i class="bi bi-lock"></i>');
+            }
+
+            bookTableBody.append(row);
+
+            const addedRow = bookTableBody.find(".bookRow").last();
+
+            if (bookId !== null && bookId !== undefined) {
+                updateBookDetails(addedRow);
+            }
+
+            updateSummary();
+            return true;
+        }
+
+        function updateBookDetails(row) {
+            const selectedOption = row.find(".bookSelect option:selected");
+
+            row.find(".isbnField").val(selectedOption.data("isbn") || "");
+
+            const price = Number(selectedOption.data("price")) || 0;
+            row.find(".priceField").val(price.toFixed(2));
+
+            updateSummary();
+        }
+
+        function clearReservations() {
+            reservations = [];
+
+            $("#reservationTableBody").empty();
+            $("#reservationBadge").text("0 Reserved");
+            $("#reservedCount").text("0");
+
+            $("#reservationTableContainer").addClass("d-none");
+
+            $("#noReservations")
+                .removeClass("d-none")
+                .text("Select a student to check their reservations.");
+        }
+
+        async function loadReservations(studentId) {
+            const requestId = ++reservationRequestId;
+
+            clearReservations();
+
+            $("#noReservations").addClass("d-none");
+            $("#reservationLoading").removeClass("d-none");
+
+            try {
+                const response = await secureFetch(
+                    `/api/book-request-api/Reservation/${studentId}`,
+                    {
+                        method: "GET"
+                    }
+                );
+
+                if (requestId !== reservationRequestId) return;
+
+                if (!response.ok) {
+                    throw new Error("Unable to load reservations");
+                }
+
+                const result = await response.json();
+
+                if (requestId !== reservationRequestId) return;
+
+                reservations = result || [];
+
+                $("#reservationLoading").addClass("d-none");
+
+                $("#reservationBadge").text(`${reservations.length} Reserved`);
+                $("#reservedCount").text(reservations.length);
+
+                if (reservations.length === 0) {
+                    $("#noReservations")
+                        .removeClass("d-none")
+                        .text("This student has no reserved books.");
+
+                    return;
+                }
+
+                $("#reservationTableContainer").removeClass("d-none");
+
+                reservations.forEach(function (reservation) {
+                    const row = $("<tr></tr>");
+
+                    row.append($("<td></td>").text(reservation.bookName));
+                    row.append($("<td></td>").text(reservation.isbn || "-"));
+                    row.append($("<td></td>").text(
+                        (Number(reservation.price) || 0).toFixed(2)
+                    ));
+                    row.append($("<td></td>").text(
+                        reservation.reservationDate
+                            ? new Date(reservation.reservationDate).toLocaleDateString()
+                            : "-"
+                    ));
+
+                    row.append(`
+                        <td>
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle me-1"></i>
+                                Added to Checkout
+                            </span>
+                        </td>
+                    `);
+
+                    $("#reservationTableBody").append(row);
+
+                    const alreadyAdded = $(".bookSelect").toArray().some(
+                        select => $(select).val() == reservation.bookId
+                    );
+
+                    if (!alreadyAdded) {
+                        addBookRow(
+                            reservation.bookId,
+                            reservation.reservationId
+                        );
+                    }
+                });
+
+                updateSummary();
+
+            } catch (error) {
+                if (requestId !== reservationRequestId) return;
+
+                $("#reservationLoading").addClass("d-none");
+
+                $("#noReservations")
+                    .removeClass("d-none")
+                    .text("Unable to load reserved books. Please try again.");
+            }
+        }
+
+        $("#StudentId").on("change", async function () {
+            const studentId = $(this).val();
+
+            reservationRequestId++;
+            clearReservations();
+
+            bookTableBody.empty();
+            showEmptyBooksMessage();
+            updateSummary();
+
+            if (!studentId) {
+                $("#studentInfo").addClass("d-none");
+                return;
+            }
+
+            const studentName = $(this).find("option:selected").text();
+
+            $("#selectedStudentName").text(studentName);
+            $("#studentInfo").removeClass("d-none");
+
+            await loadReservations(studentId);
+        });
+
+        $("#addBookBtn").on("click", function () {
+            addBookRow();
+        });
+
+        bookTableBody.on("change", ".bookSelect", function () {
+            const selectedBookId = $(this).val();
+
+            const duplicate = $(".bookSelect").not(this).toArray().some(
+                select => $(select).val() === selectedBookId && selectedBookId !== ""
+            );
+
+            if (duplicate) {
+                Swal.fire(
+                    "Duplicate Book",
+                    "This book is already in the checkout list.",
+                    "warning"
+                );
+
+                $(this).val("");
+            }
+
+            $(this).removeClass("is-invalid");
+
+            updateBookDetails($(this).closest("tr"));
+        });
+
+        bookTableBody.on("change", ".transactionType", function () {
+            updateSummary();
+        });
+
+        bookTableBody.on("click", ".removeBook", function () {
+            const row = $(this).closest("tr");
+            const bookSelect = row.find(".bookSelect");
+
+            if (bookSelect.attr("data-reserved") === "true") {
+                return;
+            }
+
+            row.remove();
+
+            showEmptyBooksMessage();
+            updateSummary();
+        });
+
+        $("#checkoutForm").on("submit", async function (e) {
+            e.preventDefault();
+
+            let isValid = true;
+
+            $("#StudentIdError").text("");
+            $("#BooksError").text("");
+            $(".is-invalid").removeClass("is-invalid");
+
+            const studentId = $("#StudentId").val();
+            const checkoutDate = $("#CheckoutDate").val();
+            const checkoutBooks = [];
+
+            if (!studentId) {
+                $("#StudentIdError").text("Please select a student.");
+                isValid = false;
+            }
+
+            if (!checkoutDate) {
+                Swal.fire("Invalid Date", "Checkout date is required.", "warning");
+                isValid = false;
+            }
+
+            if ($(".bookRow").length === 0) {
+                $("#BooksError").text("Please add at least one book.");
+                isValid = false;
+            }
+
+            $(".bookRow").each(function () {
+                const row = $(this);
+
+                const bookSelect = row.find(".bookSelect");
+                const bookId = bookSelect.val();
+                const type = row.find(".transactionType").val();
+                const reservationId = bookSelect.attr("data-reservation-id") || null;
+
+                if (!bookId) {
+                    isValid = false;
+                    bookSelect.addClass("is-invalid");
+                    return;
+                }
+
+                checkoutBooks.push({
+                    bookId: Number(bookId),
+                    transactionType: type,
+                    reservationId: reservationId ? Number(reservationId) : null
+                });
+            });
+
+            if (!isValid) {
+                return;
+            }
+
+            const checkoutData = {
+                studentId: Number(studentId),
+                checkoutDate: checkoutDate,
+                books: checkoutBooks
+            };
+
+            const result = await Swal.fire({
+                title: "Confirm Check Out?",
+                html: `
+                    <p>You are about to process ${checkoutBooks.length} book(s).</p>
+                    <p class="mb-1">Rent books: No payment</p>
+                    <p class="mb-0">Sale amount: ${$("#saleAmount").text()}</p>
+                `,
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: "Yes, Check Out",
+                cancelButtonText: "Cancel",
+                confirmButtonColor: "#198754"
+            });
+
+            if (!result.isConfirmed) {
+                return;
+            }
+
+            const checkoutBtn = $("#checkoutBtn");
+
+            checkoutBtn.prop("disabled", true);
+
+            checkoutBtn.html(
+                '<span class="spinner-border spinner-border-sm me-2"></span>Processing...'
+            );
+
+            try {
+                const response = await secureFetch(
+                    "/api/book-request-api/checkout",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(checkoutData)
+                    }
+                );
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    await Swal.fire({
+                        icon: "success",
+                        title: "Check Out Successful",
+                        text: data.message || "Books have been checked out successfully.",
+                        timer: 1800,
+                        showConfirmButton: false
+                    });
+
+                    window.location.href = "/IssuedBooks";
+                } else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Checkout Failed",
+                        text: data.message || "Something went wrong."
+                    });
+                }
+
+            } catch (error) {
+                console.log(error);
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: "Unable to complete checkout. Please try again."
+                });
+
+            } finally {
+                checkoutBtn.prop("disabled", false);
+
+                checkoutBtn.html(
+                    '<i class="bi bi-check-circle me-1"></i> Complete Check Out'
+                );
+            }
+        });
+
+        updateSummary();
+    });
+</script>
