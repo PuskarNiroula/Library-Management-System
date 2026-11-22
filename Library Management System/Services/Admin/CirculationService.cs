@@ -1,6 +1,7 @@
 using Library_Management_System.Data;
 using Library_Management_System.DTOs.Checkout;
 using Library_Management_System.Enum;
+using Library_Management_System.Models.DbModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace Library_Management_System.Services.Admin;
@@ -30,6 +31,7 @@ public async Task CheckIn(CheckInRequestDto dto)
             .Where(l => rentLogIds.Contains(l.RentLogId))
             .Where(l => l.StudentId == dto.StudentId)
             .Where(l => l.Status == RentLogStatusEnum.Active)
+            .Include(rentLog => rentLog.Book)
             .ToListAsync();
 
         if (rentLogs.Count != rentLogIds.Count)
@@ -66,6 +68,16 @@ public async Task CheckIn(CheckInRequestDto dto)
             if (checkIn.IsLost)
             {
                 inventory.TotalQuantity--;
+
+                var lostRecord = new LostRecord
+                {
+                    BookId = rentLog.BookId,
+                    RentLogId = rentLog.RentLogId,
+                    Price = rentLog.Book.Price,
+                    StudentId = rentLog.StudentId,
+                    RecordedOn = DateTime.Now
+                };
+                await context.LostRecords.AddAsync(lostRecord);
             }
             else
             {

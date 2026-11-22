@@ -1,9 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Library_Management_System.Models.DbModels;
 
-
+[Index(nameof(RentLogId), IsUnique = true)]
 public class LostRecord
 {
     [Key]
@@ -13,7 +14,8 @@ public class LostRecord
     public int BookId { get; set; }
     
     [Required]
-    public float Price { get; set; }
+    [Column(TypeName = "decimal(18, 2)")]
+    public decimal Price { get; set; }
     
     [Required]
     public int StudentId { get; set; }
