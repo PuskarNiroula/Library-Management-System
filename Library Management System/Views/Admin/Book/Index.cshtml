@@ -172,14 +172,14 @@
             if (!quantity) return;
 
             try {
-                const response = await secureFetch('/api/book-api/add-more', {
+                const response = await secureFetch('/api/book-api/AddMore', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        bookId: bookId,
-                        quantity: Number(quantity)
+                        BookId: bookId,
+                        Quantity: Number(quantity)
                     })
                 });
 
