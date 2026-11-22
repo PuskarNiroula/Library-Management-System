@@ -34,10 +34,10 @@ public class BookInventoryService(ApplicationDbContext dbContext) : IBookInvento
             .FirstOrDefaultAsync(x => x.BookId == dto.BookId);
 
         if (bookInventory == null)
-            throw new Exception("Book not found");
+            throw new System.Exception("Book not found");
 
         if (bookInventory.AvailableQuantity <= 0)
-            throw new Exception("Not enough quantity available");
+            throw new System.Exception("Not enough quantity available");
 
         bookInventory.AvailableQuantity--;
 
