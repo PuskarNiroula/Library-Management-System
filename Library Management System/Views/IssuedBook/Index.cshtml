@@ -1,4 +1,5 @@
- @model Library_Management_System.ViewModels.IssuedBooksViewModel
+
+@model Library_Management_System.ViewModels.IssuedBooksViewModel
 
 @{
     ViewData["Title"] = "Issued Books";
@@ -19,6 +20,12 @@
                     onclick="showTab('sales')"
                     class="tab-button py-3 px-4 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-indigo-600">
                 <i class="bi bi-cart-check mr-1"></i> Sales
+            </button>
+
+            <button type="button" id="lostTab"
+                    onclick="showTab('lost')"
+                    class="tab-button py-3 px-4 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-indigo-600">
+                <i class="bi bi-exclamation-triangle mr-1"></i> Lost Records
             </button>
         </div>
     </div>
@@ -51,13 +58,14 @@
                                 <td class="py-3 px-5 text-sm text-indigo-900 font-medium">@item.Status</td>
                                 <td class="py-3 px-5 text-sm text-gray-700">@item.RentedAt.ToString("yyyy-MM-dd")</td>
                             </tr>
+
                             index++;
                         }
                     }
                     else
                     {
                         <tr>
-                            <td colspan="4" class="py-6 text-center text-gray-400 text-lg font-medium">
+                            <td colspan="5" class="py-6 text-center text-gray-400 text-lg font-medium">
                                 No rented books available.
                             </td>
                         </tr>
@@ -75,7 +83,7 @@
                     <div class="flex flex-wrap gap-2">
                         @if (Model.RentPage > 1)
                         {
-                            <a href="@Url.Action("Index", new { rentPage = Model.RentPage - 1, salesPage = Model.SalesPage, tab = "rent" })"
+                            <a href="@Url.Action("Index", new { rentPage = Model.RentPage - 1, salesPage = Model.SalesPage, lostRecordPage = Model.LostRecordPage, tab = "rent" })"
                                class="px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm text-gray-700">
                                 <i class="bi bi-chevron-left"></i> Previous
                             </a>
@@ -83,7 +91,7 @@
 
                         @for (var pageNumber = 1; pageNumber <= Model.RentTotalPages; pageNumber++)
                         {
-                            <a href="@Url.Action("Index", new { rentPage = pageNumber, salesPage = Model.SalesPage, tab = "rent" })"
+                            <a href="@Url.Action("Index", new { rentPage = pageNumber, salesPage = Model.SalesPage, lostRecordPage = Model.LostRecordPage, tab = "rent" })"
                                class="px-3 py-2 rounded-lg text-sm @(pageNumber == Model.RentPage ? "bg-indigo-600 text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-700")">
                                 @pageNumber
                             </a>
@@ -91,7 +99,7 @@
 
                         @if (Model.RentPage < Model.RentTotalPages)
                         {
-                            <a href="@Url.Action("Index", new { rentPage = Model.RentPage + 1, salesPage = Model.SalesPage, tab = "rent" })"
+                            <a href="@Url.Action("Index", new { rentPage = Model.RentPage + 1, salesPage = Model.SalesPage, lostRecordPage = Model.LostRecordPage, tab = "rent" })"
                                class="px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm text-gray-700">
                                 Next <i class="bi bi-chevron-right"></i>
                             </a>
@@ -127,6 +135,7 @@
                                 <td class="py-3 px-5 text-sm text-gray-800">@item.StudentName</td>
                                 <td class="py-3 px-5 text-sm text-gray-800 font-medium">Rs.@item.Price.ToString("0.00")</td>
                             </tr>
+
                             index++;
                         }
                     }
@@ -151,7 +160,7 @@
                     <div class="flex flex-wrap gap-2">
                         @if (Model.SalesPage > 1)
                         {
-                            <a href="@Url.Action("Index", new { rentPage = Model.RentPage, salesPage = Model.SalesPage - 1, tab = "sales" })"
+                            <a href="@Url.Action("Index", new { rentPage = Model.RentPage, salesPage = Model.SalesPage - 1, lostRecordPage = Model.LostRecordPage, tab = "sales" })"
                                class="px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm text-gray-700">
                                 <i class="bi bi-chevron-left"></i> Previous
                             </a>
@@ -159,7 +168,7 @@
 
                         @for (var pageNumber = 1; pageNumber <= Model.SalesTotalPages; pageNumber++)
                         {
-                            <a href="@Url.Action("Index", new { rentPage = Model.RentPage, salesPage = pageNumber, tab = "sales" })"
+                            <a href="@Url.Action("Index", new { rentPage = Model.RentPage, salesPage = pageNumber, lostRecordPage = Model.LostRecordPage, tab = "sales" })"
                                class="px-3 py-2 rounded-lg text-sm @(pageNumber == Model.SalesPage ? "bg-indigo-600 text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-700")">
                                 @pageNumber
                             </a>
@@ -167,7 +176,84 @@
 
                         @if (Model.SalesPage < Model.SalesTotalPages)
                         {
-                            <a href="@Url.Action("Index", new { rentPage = Model.RentPage, salesPage = Model.SalesPage + 1, tab = "sales" })"
+                            <a href="@Url.Action("Index", new { rentPage = Model.RentPage, salesPage = Model.SalesPage + 1, lostRecordPage = Model.LostRecordPage, tab = "sales" })"
+                               class="px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm text-gray-700">
+                                Next <i class="bi bi-chevron-right"></i>
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div id="lostContent" class="hidden">
+            <table class="min-w-full bg-white rounded-xl shadow-lg overflow-hidden">
+                <thead class="bg-[#4f46e5]">
+                    <tr>
+                        <th class="py-3 px-5 text-left text-sm font-semibold uppercase tracking-wider text-white">#</th>
+                        <th class="py-3 px-5 text-left text-sm font-semibold uppercase tracking-wider text-white">Book Name</th>
+                        <th class="py-3 px-5 text-left text-sm font-semibold uppercase tracking-wider text-white">Student Name</th>
+                        <th class="py-3 px-5 text-left text-sm font-semibold uppercase tracking-wider text-white">Price</th>
+                        <th class="py-3 px-5 text-left text-sm font-semibold uppercase tracking-wider text-white">Recorded On</th>
+                    </tr>
+                </thead>
+
+                <tbody class="divide-y divide-indigo-100">
+                    @if (Model.LostRecords != null && Model.LostRecords.Any())
+                    {
+                        var index = (Model.LostRecordPage - 1) * 10 + 1;
+
+                        foreach (var item in Model.LostRecords)
+                        {
+                            <tr class="transition duration-200 hover:bg-indigo-50">
+                                <td class="py-3 px-5 text-sm text-gray-700">@index</td>
+                                <td class="py-3 px-5 text-sm text-indigo-900 font-medium">@item.BookName</td>
+                                <td class="py-3 px-5 text-sm text-gray-800">@item.StudentName</td>
+                                <td class="py-3 px-5 text-sm text-gray-800 font-medium">Rs.@item.Price.ToString("0.00")</td>
+                                <td class="py-3 px-5 text-sm text-gray-700">@item.RecordedOn.ToString("yyyy-MM-dd")</td>
+                            </tr>
+
+                            index++;
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="py-6 text-center text-gray-400 text-lg font-medium">
+                                No lost records available.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            @if (Model.LostRecordTotalPages > 1)
+            {
+                <div class="flex flex-wrap justify-between items-center gap-3 mt-5">
+                    <span class="text-sm text-gray-500">
+                        Page @Model.LostRecordPage of @Model.LostRecordTotalPages
+                    </span>
+
+                    <div class="flex flex-wrap gap-2">
+                        @if (Model.LostRecordPage > 1)
+                        {
+                            <a href="@Url.Action("Index", new { rentPage = Model.RentPage, salesPage = Model.SalesPage, lostRecordPage = Model.LostRecordPage - 1, tab = "lost" })"
+                               class="px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm text-gray-700">
+                                <i class="bi bi-chevron-left"></i> Previous
+                            </a>
+                        }
+
+                        @for (var pageNumber = 1; pageNumber <= Model.LostRecordTotalPages; pageNumber++)
+                        {
+                            <a href="@Url.Action("Index", new { rentPage = Model.RentPage, salesPage = Model.SalesPage, lostRecordPage = pageNumber, tab = "lost" })"
+                               class="px-3 py-2 rounded-lg text-sm @(pageNumber == Model.LostRecordPage ? "bg-indigo-600 text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-700")">
+                                @pageNumber
+                            </a>
+                        }
+
+                        @if (Model.LostRecordPage < Model.LostRecordTotalPages)
+                        {
+                            <a href="@Url.Action("Index", new { rentPage = Model.RentPage, salesPage = Model.SalesPage, lostRecordPage = Model.LostRecordPage + 1, tab = "lost" })"
                                class="px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm text-gray-700">
                                 Next <i class="bi bi-chevron-right"></i>
                             </a>
@@ -183,23 +269,21 @@
 @section Scripts {
     <script>
         function showTab(tab) {
-            const rentContent = document.getElementById('rentContent');
-            const salesContent = document.getElementById('salesContent');
-            const rentTab = document.getElementById('rentTab');
-            const salesTab = document.getElementById('salesTab');
+            const tabs = ['rent', 'sales', 'lost'];
 
-            rentContent.classList.toggle('hidden', tab !== 'rent');
-            salesContent.classList.toggle('hidden', tab !== 'sales');
+            tabs.forEach(name => {
+                const content = document.getElementById(name + 'Content');
+                const button = document.getElementById(name + 'Tab');
 
-            rentTab.classList.toggle('border-indigo-600', tab === 'rent');
-            rentTab.classList.toggle('text-indigo-600', tab === 'rent');
-            rentTab.classList.toggle('border-transparent', tab !== 'rent');
-            rentTab.classList.toggle('text-gray-500', tab !== 'rent');
+                const active = name === tab;
 
-            salesTab.classList.toggle('border-indigo-600', tab === 'sales');
-            salesTab.classList.toggle('text-indigo-600', tab === 'sales');
-            salesTab.classList.toggle('border-transparent', tab !== 'sales');
-            salesTab.classList.toggle('text-gray-500', tab !== 'sales');
+                content.classList.toggle('hidden', !active);
+
+                button.classList.toggle('border-indigo-600', active);
+                button.classList.toggle('text-indigo-600', active);
+                button.classList.toggle('border-transparent', !active);
+                button.classList.toggle('text-gray-500', !active);
+            });
         }
 
         showTab('@Model.ActiveTab');

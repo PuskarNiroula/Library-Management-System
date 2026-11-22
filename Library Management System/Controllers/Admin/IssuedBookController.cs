@@ -8,7 +8,7 @@ namespace Library_Management_System.Controllers.Admin;
 public class IssuedBookController(ApplicationDbContext dbContext):Controller
 {
     [HttpGet]
-    public async Task<IActionResult> Index(int rentPage = 1, int salesPage = 1, string tab = "rent")
+    public async Task<IActionResult> Index(int rentPage = 1, int salesPage = 1,int lostRecordPage = 1, string tab = "rent")
     {
         const int pageSize = 10;
 
@@ -51,6 +51,26 @@ public class IssuedBookController(ApplicationDbContext dbContext):Controller
                 Date = s.Date
             })
             .ToListAsync();
+        
+        var lostRecordsQuery =  dbContext.LostRecords.AsNoTracking();
+
+        var lostRecordTotalData = await lostRecordsQuery.CountAsync();
+        var lostRecordTotalPages =(int)Math.Ceiling(lostRecordTotalData / (double)pageSize);
+         lostRecordPage = Math.Clamp(lostRecordPage, 1, Math.Max(1, lostRecordTotalPages));
+         var lostRecords = await lostRecordsQuery
+             .Include(l => l.Student)
+             .Include(l => l.Book)
+             .OrderByDescending(lr => lr.RecordedOn)
+             .Skip((lostRecordPage - 1) * pageSize)
+             .Take(pageSize)
+             .Select(lr => new LostRecordViewModel
+             {
+                 BookName = lr.Book.BookName,
+                 Price = lr.Book.Price,
+                 StudentName = lr.Student.FullName,
+                 RecordedOn = lr.RecordedOn,
+             }).ToListAsync();
+        
 
         var vm = new IssuedBooksViewModel
         {
@@ -60,7 +80,10 @@ public class IssuedBookController(ApplicationDbContext dbContext):Controller
             RentTotalPages = rentTotalPages,
             SalesPage = salesPage,
             SalesTotalPages = salesTotalPages,
-            ActiveTab = tab == "sales" ? "sales" : "rent"
+            LostRecords = lostRecords,
+            LostRecordPage = lostRecordPage,
+            LostRecordTotalPages = lostRecordTotalPages,
+            ActiveTab = tab
         };
 
         return View(vm);
