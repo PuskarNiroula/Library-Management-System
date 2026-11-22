@@ -1,84 +1,166 @@
-﻿
-
-.sidebar {
-    min-width: 240px;
-    max-width: 240px;
-    height: 100vh;
-    position: fixed;
-    top: 0;
-    left: 0;
-    transition: all 0.3s;
-    overflow-y: auto;
+﻿* {
+    font-family: 'Inter', sans-serif;
 }
-
-.sidebar-header {
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-
-.sidebar .nav-link {
-    padding: 12px 20px;
-    font-size: 15px;
-    transition: background 0.3s;
-}
-
-.sidebar .nav-link:hover {
-    background-color: rgba(255,255,255,0.1);
-}
-
-.sidebar .active {
-    background-color: #0d6efd;
-}
-
-#wrapper.toggled .sidebar {
-    margin-left: -240px;
-}
-
-#page-content-wrapper {
-    margin-left: 240px;
-    transition: all 0.3s;
-}
-
-#wrapper.toggled #page-content-wrapper {
-    margin-left: 0;
-}
- html, body {
-     height: 100%;
-     margin: 0;
- }
 
 body {
-    font-family: 'Segoe UI', sans-serif;
-    background-color: #f5f7fa;
+    margin: 0;
+    color: #334155;
+    background: #f8fafc;
+}
+
+.sidebar-link {
     display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    margin-bottom: 5px;
+    width: 100%;
+    border-radius: 9px;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    background: transparent;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-align: left;
 }
 
-#wrapper {
+.sidebar-link > i {
+    font-size: 17px;
+    width: 20px;
+    text-align: center;
+}
+
+.sidebar-link:hover {
+    color: #4f46e5;
+    background: #eef2ff;
+}
+
+.sidebar-link.active {
+    background: #eef2ff;
+    color: #4f46e5;
+    font-weight: 700;
+}
+
+.sidebar-link.active > i {
+    color: #4f46e5;
+}
+
+.submenu {
+    margin: 5px 0 8px 24px;
+    padding-left: 12px;
+    border-left: 1px solid #e2e8f0;
+}
+
+.submenu-link {
     display: flex;
-    flex: 1;
-    min-height: 100vh;
+    align-items: center;
+    gap: 11px;
+    padding: 10px 12px;
+    margin: 3px 0;
+    border-radius: 8px;
+    color: #64748b;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
-#page-content-wrapper {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
+.submenu-link i {
+    font-size: 14px;
 }
 
-main {
-    flex: 1;
+.submenu-link:hover {
+    background: #f1f5f9;
+    color: #4f46e5;
 }
 
-footer {
-    margin-top: auto;
+.submenu-link.active {
+    background: #eef2ff;
+    color: #4f46e5;
+    font-weight: 700;
 }
 
-.sidebar {
-    width: 250px;
-    min-height: 100vh;
+.custom-scrollbar::-webkit-scrollbar {
+    width: 5px;
 }
 
-.toggled .sidebar {
-    margin-left: -250px;
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e1;
+}
+
+.sidebar-collapsed {
+    width: 88px;
+}
+
+.sidebar-collapsed .sidebar-link {
+    justify-content: center;
+    padding: 12px 8px;
+}
+
+.sidebar-collapsed .sidebar-link > span,
+.sidebar-collapsed .sidebar-link > i.bi-chevron-down,
+.sidebar-collapsed .submenu,
+.sidebar-collapsed h2,
+.sidebar-collapsed p,
+.sidebar-collapsed .sidebar-link > span.flex {
+    display: none;
+}
+
+.sidebar-collapsed .sidebar-link > i {
+    font-size: 20px;
+}
+
+.sidebar-collapsed > div:first-child {
+    justify-content: center;
+}
+
+.sidebar-collapsed > div:first-child a > div:last-child {
+    display: none;
+}
+
+.sidebar-collapsed > div:last-child {
+    display: none;
+}
+
+.sidebar-collapsed .sidebar-link {
+    position: relative;
+}
+
+.sidebar-collapsed .sidebar-link:hover {
+    background: #eef2ff;
+}
+
+@media (max-width: 1023px) {
+    #sidebar {
+        position: fixed;
+        width: 288px;
+    }
+}
+
+@media (max-width: 640px) {
+    main {
+        padding: 16px !important;
+    }
+}
+
+button:focus-visible,
+a:focus-visible {
+    outline: 2px solid #6366f1;
+    outline-offset: 3px;
+}
+
+a {
+    transition: color 0.2s ease, background-color 0.2s ease;
 }

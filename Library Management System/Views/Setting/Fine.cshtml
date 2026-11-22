@@ -1,0 +1,130 @@
+
+@{
+    ViewData["Title"] = "Fine Setup";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Fine Setup</h5>
+                </div>
+
+                <div class="card-body">
+                    <form id="settingForm">
+                        <div class="mb-3">
+                            <label for="SettingValue" class="form-label">
+                                Fine (Per Day)
+                            </label>
+
+                            <input type="number"
+                                   class="form-control"
+                                   id="SettingValue"
+                                   value="@(ViewBag.FineRate?.Value ?? "10")"
+                                   min="0"
+                                   step="1"
+                                   placeholder="Enter fine per day"
+                                   required />
+
+                            <span class="text-danger small" id="SettingValueError"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100">
+                            Save Fine Settings
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        #SettingValue::-webkit-inner-spin-button,
+        #SettingValue::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        #SettingValue {
+            -moz-appearance: textfield;
+        }
+    </style>
+
+    <script>
+        $(document).ready(function () {
+
+            $("#SettingValue").on("wheel", function (e) {
+                e.preventDefault();
+            });
+
+            $("#settingForm").on("submit", async function (e) {
+                e.preventDefault();
+
+                $("#SettingValueError").text("");
+
+                const value = $("#SettingValue").val();
+
+                if (value === "" || !Number.isInteger(Number(value)) || Number(value) < 0) {
+                    $("#SettingValueError").text("Please enter a valid fine amount");
+                    return;
+                }
+
+                const result = await Swal.fire({
+                    title: "Are you sure?",
+                    text: "Do you want to update the fine rate per day?",
+                    icon: "question",
+                    showCancelButton: true,
+                    confirmButtonText: "Yes, update",
+                    cancelButtonText: "Cancel"
+                });
+
+                if (result.isConfirmed) {
+                    try {
+                        const response = await secureFetch("/api/setting-api/update-fine", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify(Number(value))
+                        });
+
+                        const message = await response.text();
+
+                        if (response.ok) {
+                            Swal.fire({
+                                icon: "success",
+                                title: "Success",
+                                text: message,
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Failed",
+                                text: message || "Unable to update fine rate"
+                            });
+                        }
+
+                    } catch (error) {
+                        console.log(error);
+
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: "Something went wrong while updating fine rate"
+                        });
+                    }
+                }
+            });
+
+            $("#SettingValue").on("input", function () {
+                $("#SettingValueError").text("");
+            });
+
+        });
+    </script>
+}

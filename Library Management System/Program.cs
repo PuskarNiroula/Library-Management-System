@@ -1,20 +1,21 @@
+
 using System.Security.Claims;
 using System.Text;
 using Library_Management_System.Data;
+using Library_Management_System.Data.Seeder;
 using Library_Management_System.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+
 builder.Services.AddCustomServices();
 builder.Services.AddRazorPages();
 builder.Services.AddControllersWithViews();
 
-
 var connectionString = builder.Configuration
     .GetConnectionString("DefaultConnection");
-
 
 if (string.IsNullOrWhiteSpace(connectionString))
 {
@@ -22,11 +23,17 @@ if (string.IsNullOrWhiteSpace(connectionString))
 }
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
+    options.UseMySql(
+        connectionString,
+        ServerVersion.AutoDetect(connectionString)
+    )
 );
-//jwt Authentication 
-//creating key
-var key =Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"] ?? throw new InvalidOperationException());
+
+var key = Encoding.UTF8.GetBytes(
+    builder.Configuration["Jwt:SecretKey"]
+    ?? throw new InvalidOperationException()
+);
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -37,15 +44,11 @@ builder.Services
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-
             IssuerSigningKey = new SymmetricSecurityKey(key),
-
             NameClaimType = ClaimTypes.Name,
             RoleClaimType = ClaimTypes.Role,
-
             ClockSkew = TimeSpan.Zero
         };
 
@@ -54,40 +57,51 @@ builder.Services
             OnMessageReceived = context =>
             {
                 var token = context.Request.Cookies["jwt_token"];
+
                 if (!string.IsNullOrEmpty(token))
                 {
                     context.Token = token;
                 }
+
                 return Task.CompletedTask;
             }
         };
     });
 
-//making security strict for the form by including csrf for preventing xss.
+builder.Services.AddAntiforgery(options =>
+    options.HeaderName = "X-CSRF-TOKEN");
 
-builder.Services.AddAntiforgery(options=>options.HeaderName = "X-CSRF-TOKEN"); 
+builder.Services.AddAuthorization();
 
-builder.Services.AddAuthorization(); //it comes first for using [authorize]
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider
+        .GetRequiredService<ApplicationDbContext>();
+
+    await context.Database.MigrateAsync();
+
+    await Seeder.SeedAsync(context);
+}
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
 }
-//these come before authorization and authentication
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-//must use useAuthentication before useAuthorization
+
 app.UseAuthentication();
 app.UseAuthorization();
-
-
-
 
 app.MapControllerRoute(
     name: "Home",
     pattern: "{controller=Home}/{action=Index}/{id?}"
 );
+
 app.MapRazorPages();
 
 app.Run();
