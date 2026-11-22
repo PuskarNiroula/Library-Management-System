@@ -403,7 +403,7 @@ List<User> students = ViewBag.Students as List<User> ?? new List<User>();
 
             try {
                 const response = await secureFetch(
-                    `/api/book-request-api/checkin/${encodeURIComponent(studentId)}`,
+                    `/api/circulation-api/checkin/${encodeURIComponent(studentId)}`,
                     {
                         method: "GET"
                     }
