@@ -94,7 +94,10 @@ public class BookRequestApiController(IBookRequestService bookRequestService,App
         }
         catch (Exception ex)
         {
-            return StatusCode(500, ex);
+            return StatusCode(500, new
+            {
+                message = ex.Message
+            });
         }
     }
 }
