@@ -3,6 +3,7 @@ using Library_Management_System.Services;
 using Library_Management_System.Services.Admin.Book;
 using Library_Management_System.Services.Admin.BookRequest;
 using Library_Management_System.Services.Admin.Category;
+using Library_Management_System.Services.Admin.Setting;
 using Library_Management_System.Services.Admin.User;
 using Library_Management_System.Services.Student;
 
@@ -25,6 +26,7 @@ public static class ServiceExtensions
          services.AddScoped<IUserControlService,UserControlService>();
          services.AddScoped<IBookInventoryService, BookInventoryService>();
          services.AddScoped<IBookRequestService,BookRequestService>();
+         services.AddScoped<ISettingService,SettingService>();
          services.AddScoped<JwtService>();
          
     }

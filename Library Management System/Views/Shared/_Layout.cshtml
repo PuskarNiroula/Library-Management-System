@@ -235,22 +235,30 @@
 
                     <div id="setupSubmenu"
                          class="submenu @(isSetupActive ? "" : "hidden")">
-                        
-                        <a asp-controller="Settings"
-                           asp-action="LibrarySettings"
-                           class="submenu-link @(activeMenu == "LibrarySettings" ? "active" : "")">
-                            <i class="bi bi-building-gear"></i>
-                            Library Settings
+
+                        <a asp-controller="Setting"
+                           asp-action="FineSetup"
+                           class="submenu-link @(activeMenu == "FineSetup" ? "active" : "")">
+                            <i class="bi bi-cash-coin"></i>
+                            Fine Setup
                         </a>
 
-                        <a asp-controller="Settings"
-                           asp-action="FineSettings"
-                           class="submenu-link @(activeMenu == "FineSettings" ? "active" : "")">
-                            <i class="bi bi-cash-coin"></i>
-                            Fine Settings
+                        <a asp-controller="Setting"
+                           asp-action="MaxBooksSetup"
+                           class="submenu-link @(activeMenu == "MaxBooksSetup" ? "active" : "")">
+                            <i class="bi bi-book-half"></i>
+                            Maximum Books
+                        </a>
+
+                        <a asp-controller="Setting"
+                           asp-action="MaxDaysSetup"
+                           class="submenu-link @(activeMenu == "MaxDaysSetup" ? "active" : "")">
+                            <i class="bi bi-calendar2-check"></i>
+                            Maximum Borrowing Days
                         </a>
 
                     </div>
+
 
                 </div>
 

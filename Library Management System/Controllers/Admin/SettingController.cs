@@ -1,22 +1,31 @@
-using Library_Management_System.Data;
 using Library_Management_System.Enum;
+using Library_Management_System.Services.Admin.Setting;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Library_Management_System.Controllers.Admin;
 
 [Authorize(Roles = "Admin")]
-[Route("Setting/{Action}")]
-public class SettingController(ApplicationDbContext dbContext):Controller
+[Route("Settings/{Action}")]
+public class SettingController(ISettingService settingService):Controller
 {
     
-    public async Task<IActionResult> Fine()
+    public async Task<IActionResult> FineSetup()
     {
-        var Fine = await dbContext.Settings.Where(s => s.Key == SettingKeyEnum.FineRate).FirstOrDefaultAsync();
-        return View("Fine", Fine);
-
+        ViewBag.FineRate = await settingService.GetSetting(SettingKeyEnum.FineRate);
+        return View("Fine");
     }
-    
+
+    public async Task<IActionResult> MaxBooksSetup()
+    {
+        ViewBag.MaxBooksAllowed = await settingService.GetSetting(SettingKeyEnum.MaxBooksAllowed);
+        return View("MaxBooksSetup");
+    }
+
+    public async Task<IActionResult> MaxDaysSetup()
+    {
+        ViewBag.MaxAllowedDays = await settingService.GetSetting(SettingKeyEnum.MaxAllowedDays);
+        return View("MaxDaysSetup");
+    }
     
 }
