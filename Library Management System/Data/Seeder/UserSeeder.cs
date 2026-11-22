@@ -1,5 +1,5 @@
 using Library_Management_System.Helpers;
-using Library_Management_System.Models;
+using Library_Management_System.Models.DbModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace Library_Management_System.Data.Seeder;

@@ -1,4 +1,6 @@
-﻿namespace Library_Management_System.Models;
+﻿using Library_Management_System.Models.DbModels;
+
+namespace Library_Management_System.Models;
 
 public class EditBookView
 {

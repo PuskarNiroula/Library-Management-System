@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Library_Management_System.Models.DbModels;
+
 
 public class LostRecord
 {
@@ -18,4 +20,17 @@ public class LostRecord
     
     [Required]
     public DateTime RecordedOn { get; set; }
+    
+    [Required]
+    public int RentLogId { get; set; }
+    
+    
+    [ForeignKey(nameof(StudentId))]
+    public User Student { get; set; }
+    
+    [ForeignKey(nameof(BookId))]
+    public Book Book { get; set; }
+    
+    [ForeignKey(nameof(RentLogId))]
+    public RentLog RentLog { get; set; }
 }

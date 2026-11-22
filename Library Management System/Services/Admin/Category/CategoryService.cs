@@ -17,7 +17,7 @@ public class CategoryService(ApplicationDbContext dbContext) : ICategoryService
     /// <returns>`true` if the category was saved to the database, `false` otherwise.</returns>
     public async Task<bool> CreateCategoryAsync(CreateCategory dto)
     {
-        Models.Category category = new Models.Category
+        Models.DbModels.Category category = new Models.DbModels.Category
         {
             CategoryName = dto.CategoryName,
         };
@@ -25,9 +25,9 @@ public class CategoryService(ApplicationDbContext dbContext) : ICategoryService
         return await _dbContext.SaveChangesAsync() > 0;
     }
 
-    public async Task<Models.Category?> GetCategoryByIdAsync(int categoryId)
+    public async Task<Models.DbModels.Category?> GetCategoryByIdAsync(int categoryId)
     {
-        Models.Category? category = await _dbContext.Category.FindAsync(categoryId);
+        Models.DbModels.Category? category = await _dbContext.Category.FindAsync(categoryId);
         return category ?? null;
     }
     /// <summary>
@@ -70,7 +70,7 @@ public class CategoryService(ApplicationDbContext dbContext) : ICategoryService
         return true;
     }
 
-    public async Task<List<Models.Category>> GetAllCategoriesAsync()
+    public async Task<List<Models.DbModels.Category>> GetAllCategoriesAsync()
     {
        return await  _dbContext.Category.ToListAsync();
     }
