@@ -1,7 +1,7 @@
 using Library_Management_System.Data;
 using Library_Management_System.DTOs.Book;
 using Library_Management_System.Enum;
-using Library_Management_System.Models;
+using Library_Management_System.Models.DbModels;
 using Library_Management_System.Services.Admin.Enum;
 using Microsoft.EntityFrameworkCore;
 

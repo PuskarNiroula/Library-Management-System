@@ -20,16 +20,17 @@ public class IssuedBookController(ApplicationDbContext dbContext):Controller
         rentPage = Math.Clamp(rentPage, 1, Math.Max(1, rentTotalPages));
 
         var rents = await rentQuery
-            .OrderByDescending(r => r.RentedDate)
+            .OrderBy(r => r.Status)
+            .ThenByDescending(r => r.RentedDate)
             .Skip((rentPage - 1) * pageSize)
             .Take(pageSize)
             .Select(r => new RentBookViewModel
             {
                 BookName = r.Book.BookName,
                 StudentName = r.Student.FullName,
-                RentedAt = r.RentedDate
-            })
-            .ToListAsync();
+                RentedAt = r.RentedDate,
+                Status = r.Status,
+            }).ToListAsync();
 
         var salesQuery = dbContext.SalesRecords.AsNoTracking();
 

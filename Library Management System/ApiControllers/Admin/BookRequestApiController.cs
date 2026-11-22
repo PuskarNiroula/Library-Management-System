@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Library_Management_System.Data;
 using Library_Management_System.DTOs.Checkout;
+using Library_Management_System.Enum;
 using Library_Management_System.Services.Admin.BookRequest;
 using Library_Management_System.Services.Admin.Enum;
 using Library_Management_System.ViewModels;
@@ -99,5 +100,86 @@ public class BookRequestApiController(IBookRequestService bookRequestService,App
                 message = ex.Message
             });
         }
+    }
+    
+       [HttpGet("{id:int}")]
+    public async Task<IActionResult> Checkin(int id)
+    {
+
+        try
+        {
+
+            return Ok(await GetRentedBookLogs(id));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                status = "error",
+                message = ex.Message
+            });
+        }
+
+    }
+
+    private async Task<List<CheckInResponseViewModel>> GetRentedBookLogs(int userId)
+    {
+        int maxDays = await GetMaxAllowedDays();
+        int fineRate = await GetFineRate();
+        DateTime today = DateTime.Today;
+
+        var rentedBooks = await context.RentLogs.AsNoTracking()
+            .Where(l => l.StudentId == userId && l.Status == RentLogStatusEnum.Active)
+            .Select(a => new
+            {
+                a.RentLogId,
+                a.BookId,
+                BookName = a.Book.BookName,
+                a.RentedDate,
+                Price = a.Book.Price
+            })
+            .ToListAsync();
+
+        return rentedBooks.Select(a =>
+        {
+            DateTime maxAllowedDate = a.RentedDate.AddDays(maxDays);
+
+            return new CheckInResponseViewModel
+            {
+                RentedLogId = a.RentLogId,
+                BookId = a.BookId,
+                BookName = a.BookName,
+                RentedDate = a.RentedDate,
+                price = a.Price,
+                MaxAllowedDate = maxAllowedDate,
+                Fine = today > maxAllowedDate
+                    ? fineRate * (today - maxAllowedDate).Days
+                    : 0
+            };
+        }).ToList();
+    }
+
+    private async Task<int> GetFineRate()
+    {
+      var rate = await context.Settings.Where(s => s.Key == SettingKeyEnum.FineRate)
+          .Select(s => s.Value)
+          .FirstOrDefaultAsync();
+      
+      if (rate == null)
+          throw new Exception("Fine rate is not set please set before checking in any student");
+      
+      return int.Parse(rate);
+    }
+
+    private async Task<int> GetMaxAllowedDays()
+    {
+        var allowedDays = await context.Settings.Where(s => s.Key == SettingKeyEnum.MaxAllowedDays)
+            .Select(s => s.Value)
+            .FirstOrDefaultAsync();
+        
+        if (allowedDays==null)
+            throw new Exception("Fine rate is not set please set before checking in any student");
+        
+        return int.Parse(allowedDays);
     }
 }

@@ -1,6 +1,7 @@
 using Library_Management_System.Data;
 using Library_Management_System.DTOs.Book;
 using Library_Management_System.Models;
+using Library_Management_System.Models.DbModels;
 using Library_Management_System.Services.Admin.Exception;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,7 +9,6 @@ namespace Library_Management_System.Services.Admin.Book;
 
 public class BookService(ApplicationDbContext dbContext) : IBookService
 {
-    private readonly ApplicationDbContext _context = dbContext;
 
     /// <summary>
     /// Create and persist a new Book entity from the provided DTO.
@@ -17,7 +17,7 @@ public class BookService(ApplicationDbContext dbContext) : IBookService
     /// <returns>`true` if the book was saved to the database, `false` otherwise.</returns>
     public async Task<bool> CreateBookAsync(CreateBookDto createBookDto)
     {
-        var book = new Models.Book
+        var book = new Models.DbModels.Book
         {
             Author = createBookDto.Author,
             CategoryId = createBookDto.CategoryId,
@@ -38,9 +38,9 @@ public class BookService(ApplicationDbContext dbContext) : IBookService
             }
         };
 
-        _context.Books.Add(book);
+        dbContext.Books.Add(book);
 
-        return await _context.SaveChangesAsync() > 0;
+        return await dbContext.SaveChangesAsync() > 0;
     }
 
     /// <summary>
@@ -72,24 +72,24 @@ public class BookService(ApplicationDbContext dbContext) : IBookService
         if (!string.IsNullOrEmpty(updateBookDto.Isbn))
             book.Isbn = updateBookDto.Isbn;
         book.PublicationDate = updateBookDto.PublishDate;
-        _context.Books.Update(book);
+        dbContext.Books.Update(book);
         
         
-        return await _context.SaveChangesAsync() > 0;
+        return await dbContext.SaveChangesAsync() > 0;
     }
 
     public async Task<bool> DeleteBookAsync(int id)
     {
-        var book = await _context.Books.FindAsync(id);
+        var book = await dbContext.Books.FindAsync(id);
         if (book == null)
             return false;
-        _context.Books.Remove(book);
-        return await _context.SaveChangesAsync() > 0;
+        dbContext.Books.Remove(book);
+        return await dbContext.SaveChangesAsync() > 0;
     }
 
-    public async Task<Models.Book> GetBookAsync(int id)
+    public async Task<Models.DbModels.Book> GetBookAsync(int id)
     {
-        var book = await _context.Books.FindAsync(id);
+        var book = await dbContext.Books.FindAsync(id);
         return book ?? throw new BookNotFoundException(id);
     }
 
@@ -97,9 +97,9 @@ public class BookService(ApplicationDbContext dbContext) : IBookService
     /// Retrieve the four most recently added books ordered from newest to oldest.
     /// </summary>
     /// <returns>A list containing up to four Book entities, ordered by descending BookId (newest first).</returns>
-    public async Task<List<Models.Book>> GetNewBooks()
+    public async Task<List<Models.DbModels.Book>> GetNewBooks()
     {
-        var newBooks = await _context.Books.OrderByDescending(b => b.BookId).Take(4).ToListAsync();
+        var newBooks = await dbContext.Books.OrderByDescending(b => b.BookId).Take(4).ToListAsync();
         return newBooks;
     }
 
@@ -110,16 +110,16 @@ public class BookService(ApplicationDbContext dbContext) : IBookService
     /// <param name="page">1-based page index to return.</param>
     /// <param name="pageSize">Number of items per page.</param>
     /// <returns>A PaginatedBook&lt;Models.Book&gt; containing the matching books for the requested page and pagination metadata.</returns>
-    public async Task<PaginatedBook<Models.Book>> GetSearchedBook(string searchString, int page = 1, int pageSize = 6)
+    public async Task<PaginatedBook<Models.DbModels.Book>> GetSearchedBook(string searchString, int page = 1, int pageSize = 6)
     {
         
-        var totalBooks = await _context.Books.Where(b => b.BookName.Contains(searchString)
+        var totalBooks = await dbContext.Books.Where(b => b.BookName.Contains(searchString)
                                                    || b.Author.Contains(searchString) 
                                                    || b.Isbn.Contains(searchString)
                                                    ||(b.Category!=null && b.Category.CategoryName.Contains(searchString))
                                                    || b.Publisher.Contains(searchString)).CountAsync();
         
-        var books = await _context.Books.Where(b => b.BookName.Contains(searchString)
+        var books = await dbContext.Books.Where(b => b.BookName.Contains(searchString)
                                                             || b.Author.Contains(searchString)
                                                             || b.Isbn.Contains(searchString)
                                                             || b.Category.CategoryName.Contains(searchString)
@@ -140,12 +140,12 @@ public class BookService(ApplicationDbContext dbContext) : IBookService
     /// <param name="page">1-based page index to retrieve.</param>
     /// <param name="pageSize">Number of books per page.</param>
     /// <returns>A PaginatedBook&lt;Models.Book&gt; containing the page of books, the current page, page size, total page count, and total item count.</returns>
-    public async Task<PaginatedBook<Models.Book>> GetPaginatedBooks(int page=1,int pageSize=6)
+    public async Task<PaginatedBook<Models.DbModels.Book>> GetPaginatedBooks(int page=1,int pageSize=6)
     {
         var skip = (page - 1) * pageSize;
-        var totalBooks = await _context.Books.CountAsync();
+        var totalBooks = await dbContext.Books.CountAsync();
 
-        var books = await _context.Books
+        var books = await dbContext.Books
             .OrderBy(b => b.BookName)
             .Skip(skip)
             .Take(pageSize)
@@ -153,11 +153,11 @@ public class BookService(ApplicationDbContext dbContext) : IBookService
        return MakePaginatedModel(books, page, pageSize, totalBooks);
     }
 
-    private PaginatedBook<Models.Book> MakePaginatedModel(List<Models.Book> books, int page, int pageSize,int totalBooks)
+    private PaginatedBook<Models.DbModels.Book> MakePaginatedModel(List<Models.DbModels.Book> books, int page, int pageSize,int totalBooks)
     {
         var totalPages = (int)Math.Ceiling((double) totalBooks / pageSize);
 
-        return new PaginatedBook<Models.Book>()
+        return new PaginatedBook<Models.DbModels.Book>()
         {
             Items = books,
             CurrentPage = page,

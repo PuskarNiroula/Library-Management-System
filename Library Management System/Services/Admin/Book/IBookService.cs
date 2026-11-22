@@ -8,11 +8,11 @@ public interface IBookService
     Task<bool> CreateBookAsync(CreateBookDto createBookDto);
     Task<bool> UpdateBookAsync(UpdateBookDto updateBookDto);
     Task<bool> DeleteBookAsync(int id);
-    Task<Models.Book> GetBookAsync(int id);
+    Task<Models.DbModels.Book> GetBookAsync(int id);
     
-    Task<List<Models.Book>> GetNewBooks();
-    Task<PaginatedBook<Models.Book>> GetSearchedBook(string searchString,int page=1,int pageSize=6);
+    Task<List<Models.DbModels.Book>> GetNewBooks();
+    Task<PaginatedBook<Models.DbModels.Book>> GetSearchedBook(string searchString,int page=1,int pageSize=6);
     
-    Task<PaginatedBook<Models.Book>> GetPaginatedBooks(int page=1,int pageSize=6);
+    Task<PaginatedBook<Models.DbModels.Book>> GetPaginatedBooks(int page=1,int pageSize=6);
 
 }

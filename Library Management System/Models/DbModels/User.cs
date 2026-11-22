@@ -1,7 +1,7 @@
 ﻿
 using Library_Management_System.Enum;
 
-namespace Library_Management_System.Models
+namespace Library_Management_System.Models.DbModels
 {
     public class User
     {

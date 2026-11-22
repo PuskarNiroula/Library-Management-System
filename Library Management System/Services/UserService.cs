@@ -2,7 +2,7 @@ using Library_Management_System.Data;
 using Library_Management_System.DTOs.User;
 using Library_Management_System.Enum;
 using Library_Management_System.Helpers;
-using Library_Management_System.Models;
+using Library_Management_System.Models.DbModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace Library_Management_System.Services;
