@@ -1,10 +1,282 @@
-﻿@{
-    ViewData["Title"] = "Admin";
+﻿@model Library_Management_System.ViewModels.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="container">
-    <h1>Admin</h1>
-    <p>This is portion of Admin Panel</p>
-    
-    <p>Searching for layout</p>
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-1">Library Dashboard</h3>
+            <p class="text-muted mb-0">Overview of your library activities</p>
+        </div>
+        <span class="text-muted small">
+            <i class="bi bi-calendar3 me-1"></i>
+            @DateTime.Now.ToString("dd MMM yyyy")
+        </span>
+    </div>
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted fw-semibold">Total Books</span>
+                        <div class="rounded-3 bg-primary bg-opacity-10 text-primary p-2">
+                            <i class="bi bi-book fs-4"></i>
+                        </div>
+                    </div>
+                    <h2 class="fw-bold mb-0">@Model.TotalBooks.ToString("N0")</h2>
+                    <small class="text-muted">Total book copies</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted fw-semibold">Available Books</span>
+                        <div class="rounded-3 bg-success bg-opacity-10 text-success p-2">
+                            <i class="bi bi-book-half fs-4"></i>
+                        </div>
+                    </div>
+                    <h2 class="fw-bold text-success mb-0">@Model.AvailableBooks.ToString("N0")</h2>
+                    <small class="text-muted">Currently available</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted fw-semibold">Rented Books</span>
+                        <div class="rounded-3 bg-info bg-opacity-10 text-info p-2">
+                            <i class="bi bi-journal-arrow-up fs-4"></i>
+                        </div>
+                    </div>
+                    <h2 class="fw-bold text-info mb-0">@Model.RentedBooks.ToString("N0")</h2>
+                    <small class="text-muted">Currently rented</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted fw-semibold">Sold Books</span>
+                        <div class="rounded-3 bg-warning bg-opacity-10 text-warning p-2">
+                            <i class="bi bi-cart-check fs-4"></i>
+                        </div>
+                    </div>
+                    <h2 class="fw-bold text-warning mb-0">@Model.SoldBooks.ToString("N0")</h2>
+                    <small class="text-muted">Total copies sold</small>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row g-4">
+
+        <div class="col-12 col-xl-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 px-4 pt-4 pb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-arrow-left-right text-primary me-2"></i>
+                            Recent Rents
+                        </h5>
+                        <a asp-controller="IssuedBook" asp-action="Index" class="text-decoration-none small">View All</a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Book</th>
+                                <th>Student</th>
+                                <th>Rent Date</th>
+                                <th class="pe-4">Status</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @if (Model.RecentRents.Any())
+                            {
+                            @foreach (var rent in Model.RecentRents)
+                            {
+                            <tr>
+                                <td class="ps-4 fw-semibold">@rent.BookName</td>
+                                <td>@rent.StudentName</td>
+                                <td>@rent.RentDate.ToString("dd MMM yyyy")</td>
+                                <td class="pe-4">
+                                    <span class="badge bg-success bg-opacity-10 text-success">@rent.Status</span>
+                                </td>
+                            </tr>
+                            }
+                            }
+                            else
+                            {
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">No recent rents found</td>
+                            </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 px-4 pt-4 pb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-cart-check text-success me-2"></i>
+                            Recent Sales
+                        </h5>
+                        <a asp-controller="IssuedBook" asp-action="Index" class="text-decoration-none small">View All</a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Book</th>
+                                <th>Customer</th>
+                                <th>Sale Date</th>
+                                <th class="pe-4">Amount</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @if (Model.RecentSales.Any())
+                            {
+                            @foreach (var sale in Model.RecentSales)
+                            {
+                            <tr>
+                                <td class="ps-4 fw-semibold">@sale.BookName</td>
+                                <td>@sale.CustomerName</td>
+                                <td>@sale.SaleDate.ToString("dd MMM yyyy")</td>
+                                <td class="pe-4 fw-semibold">@sale.Amount.ToString("N2")</td>
+                            </tr>
+                            }
+                            }
+                            else
+                            {
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">No recent sales found</td>
+                            </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 px-4 pt-4 pb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-exclamation-triangle text-danger me-2"></i>
+                            Lost Books
+                        </h5>
+                        <a asp-controller="IssuedBook" asp-action="Index" class="text-decoration-none small">View All</a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Book</th>
+                                <th>Student</th>
+                                <th>Reported Date</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @if (Model.LostBooks.Any())
+                            {
+                            @foreach (var lost in Model.LostBooks)
+                            {
+                            <tr>
+                                <td class="ps-4 fw-semibold">@lost.BookName</td>
+                                <td>@lost.StudentName</td>
+                                <td>@lost.ReportedDate.ToString("dd MMM yyyy")</td>
+                              
+                            </tr>
+                            }
+                            }
+                            else
+                            {
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">No lost books found</td>
+                            </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 px-4 pt-4 pb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-box-seam text-warning me-2"></i>
+                            Low on Stock
+                        </h5>
+                        <a asp-controller="Book" asp-action="Index" class="text-decoration-none small">View Books</a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Book</th>
+                                <th>Author</th>
+                                <th class="pe-4">Available Copies</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @if (Model.LowStockBooks.Any())
+                            {
+                            @foreach (var book in Model.LowStockBooks)
+                            {
+                            <tr>
+                                <td class="ps-4 fw-semibold">@book.BookName</td>
+                                <td>@book.Author</td>
+                                <td class="pe-4">
+                                                <span class="badge bg-warning bg-opacity-10 text-warning">
+                                                    @book.AvailableQuantity
+                                                </span>
+                                </td>
+                            </tr>
+                            }
+                            }
+                            else
+                            {
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-4">No low-stock books found</td>
+                            </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
 </div>
