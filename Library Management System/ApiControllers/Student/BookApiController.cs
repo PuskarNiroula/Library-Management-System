@@ -66,9 +66,20 @@ public class BookApiController(IBookService service,IBookInventoryService bookIn
             UserId = int.Parse(userId)
         };
 
-        var result = await bookInventoryService.RequestBookAsync(dto);
+        try
+        {
+            var result = await bookInventoryService.RequestBookAsync(dto);
 
-        return Ok(result);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                message = ex.Message
+            });
+        }
+        
     }
     [Authorize]
     [HttpPost("buy")]
@@ -86,9 +97,19 @@ public class BookApiController(IBookService service,IBookInventoryService bookIn
             UserId = int.Parse(userId)
         };
 
-        var result = await bookInventoryService.RequestBookAsync(dto);
+        try
+        {
+            var result = await bookInventoryService.RequestBookAsync(dto);
 
-        return Ok(result);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                message = ex.Message
+            });
+        }
     }
 
     
