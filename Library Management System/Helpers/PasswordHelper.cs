@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Library_Management_System.Helpers;
 
-public class PasswordHelper
+public static class PasswordHelper
 {
         public static string HashPassword(string password)
         {

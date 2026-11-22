@@ -1,0 +1,135 @@
+
+@{
+    ViewData["Title"] = "Fine Setup";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Fine Setup</h5>
+                </div>
+
+                <div class="card-body">
+                    <form id="fineForm">
+                        <div class="mb-3">
+                            <label for="FinePerDay" class="form-label">Fine (Per Day)</label>
+                            <input type="number"
+                                   class="form-control"
+                                   id="FinePerDay"
+                                   name="fine_per_day"
+                                   min="0"
+                                   step="0.01"
+                                   placeholder="Enter fine amount per day"
+                                   required />
+
+                            <span class="text-danger small" id="FinePerDayError"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100">
+                            Save Fine Settings
+                        </button>
+                    </form>
+
+                    <div id="message" class="mt-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        #FinePerDay::-webkit-inner-spin-button,
+        #FinePerDay::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        #FinePerDay {
+            -moz-appearance: textfield;
+        }
+    </style>
+
+    <script>
+        $(document).ready(function () {
+
+            $("#FinePerDay").on("wheel", function (e) {
+                e.preventDefault();
+            });
+
+            $("#fineForm").on("submit", async function (e) {
+                e.preventDefault();
+
+                $("#FinePerDayError").text("");
+
+                let fine = $("#FinePerDay").val();
+                let isValid = true;
+
+                if (fine === "") {
+                    $("#FinePerDayError").text("Fine per day is required");
+                    isValid = false;
+                } else if (Number(fine) < 0 || !Number.isFinite(Number(fine))) {
+                    $("#FinePerDayError").text("Please enter a valid fine amount");
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    return;
+                }
+
+                Swal.fire({
+                    title: "Are you sure?",
+                    text: "Do you want to save this fine configuration?",
+                    icon: "question",
+                    showCancelButton: true,
+                    confirmButtonText: "Yes, save it",
+                    cancelButtonText: "Cancel"
+                }).then(async (result) => {
+
+                    if (result.isConfirmed) {
+                        try {
+                            const response = await secureFetch("/api/fine-api/setup", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({
+                                    FinePerDay: Number(fine)
+                                })
+                            });
+
+                            if (response.ok) {
+                                Swal.fire({
+                                    icon: "success",
+                                    text: "Fine settings saved successfully",
+                                    showConfirmButton: true,
+                                    timer: 1500
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: "error",
+                                    text: response.message || "Something went wrong"
+                                });
+                            }
+
+                        } catch (error) {
+                            console.log(error);
+
+                            Swal.fire({
+                                icon: "error",
+                                text: "Unable to save fine settings"
+                            });
+                        }
+                    }
+                });
+            });
+
+            $("#FinePerDay").on("input", function () {
+                $("#FinePerDayError").text("");
+            });
+
+        });
+    </script>
+}

@@ -9,7 +9,7 @@ namespace Library_Management_System.Services;
 
 public class UserService(ApplicationDbContext dbContext) : IUserService
 {
-    private  readonly ApplicationDbContext _context=dbContext;
+  
 
     /// <summary>
     /// Creates a new student user from the provided registration data and persists it to the database.
@@ -29,8 +29,8 @@ public class UserService(ApplicationDbContext dbContext) : IUserService
             Role=UserRoleEnum.Student
         };
 
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
+        dbContext.Users.Add(user);
+        await dbContext.SaveChangesAsync();
 
         return new UserResponseDto
         {
@@ -45,7 +45,7 @@ public class UserService(ApplicationDbContext dbContext) : IUserService
     public async Task<bool> GetByEmailAsync(string email)
     {
 
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
 
         if (user == null)
             return true;
@@ -59,9 +59,9 @@ public class UserService(ApplicationDbContext dbContext) : IUserService
     /// </summary>
     /// <param name="loginDto">The user's login credentials (email and password).</param>
     /// <returns>A <see cref="UserResponseDto"/> containing the user's Id, FullName, Email, and Role when credentials are valid; `null` if the user is not found or the password is incorrect.</returns>
-    public async Task<UserResponseDto> LoginAsync(LoginDto loginDto)
+    public async Task<UserResponseDto?> LoginAsync(LoginDto loginDto)
     {
-       var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == loginDto.Email);
+       var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == loginDto.Email);
         if (user == null)
         {
             return null;

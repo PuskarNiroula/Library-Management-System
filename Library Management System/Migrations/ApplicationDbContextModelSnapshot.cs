@@ -173,6 +173,31 @@ namespace Library_Management_System.Migrations
                     b.ToTable("SalesRecords");
                 });
 
+            modelBuilder.Entity("Library_Management_System.Models.DbModels.Setting", b =>
+                {
+                    b.Property<int>("SettingId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("SettingId"));
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("SettingId");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("Settings");
+                });
+
             modelBuilder.Entity("Library_Management_System.Models.Fine", b =>
                 {
                     b.Property<int>("FineId")

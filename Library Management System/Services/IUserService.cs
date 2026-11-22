@@ -7,6 +7,6 @@ public interface IUserService
 {
     Task<UserResponseDto> RegisterAsync(UserDto userDto);
    Task <bool> GetByEmailAsync(string email);
-    Task<UserResponseDto> LoginAsync(LoginDto loginDto);
+    Task<UserResponseDto?> LoginAsync(LoginDto loginDto);
     
 }

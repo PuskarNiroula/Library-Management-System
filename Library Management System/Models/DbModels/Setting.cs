@@ -1,7 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace Library_Management_System.Models.DbModels
 {
+    [Index(nameof(Key), IsUnique = true)]
     public class Setting
     {
         [Key]
@@ -9,9 +11,9 @@ namespace Library_Management_System.Models.DbModels
 
         [Required]
         [StringLength(100)]
-        public string SettingKey { get; set; } = string.Empty;
+        public string Key { get; set; } = string.Empty;
 
         [Required]
-        public string SettingValue { get; set; } = string.Empty;
+        public string Value { get; set; } = string.Empty;
     }
 }
