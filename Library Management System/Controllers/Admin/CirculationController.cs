@@ -5,10 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Library_Management_System.Controllers.Admin;
 [Authorize(Roles = "Admin")]
-[Route("/Circulation/CheckOut")]
-public class CheckoutController(ApplicationDbContext context):Controller
+[Route("/Circulation")]
+public class CirculationController(ApplicationDbContext context):Controller
 {
 
+    [HttpGet("Checkout")]
     public async Task<IActionResult> Index()
     {
         var students = await context.Users
@@ -23,6 +24,14 @@ public class CheckoutController(ApplicationDbContext context):Controller
         ViewBag.Books = books;
 
         return View("Index");
+    }
+    [HttpGet("CheckIn")]
+    public async Task<IActionResult> CheckIn()
+    {
+        var students = await context.Users.Where(u=>u.Role == "Student").ToListAsync();
+        ViewBag.Students = students;
+
+        return View("check-in");
     }
     
 }

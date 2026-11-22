@@ -1,6 +1,6 @@
+using Library_Management_System.Data;
 using Library_Management_System.DTOs.Book;
 using Library_Management_System.Services.Admin.Book;
-using Library_Management_System.Services.Admin.BookRequest;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,7 +10,7 @@ namespace Library_Management_System.ApiControllers.Admin;
 [Route("api/book-api/[action]")]
 [Authorize(Roles = "Admin")]
 [AutoValidateAntiforgeryToken]
-public class BookApiController(IBookService service) :ControllerBase {
+public class BookApiController(IBookService service,ApplicationDbContext dbContext) :ControllerBase {
     /// <summary>
     /// Creates a new book record, persists the uploaded cover image to disk, and returns an HTTP response indicating the outcome.
     /// </summary>
@@ -190,5 +190,7 @@ public class BookApiController(IBookService service) :ControllerBase {
             message = "Internal Server Error just to check"
         });
     }
+
+ 
 
 }

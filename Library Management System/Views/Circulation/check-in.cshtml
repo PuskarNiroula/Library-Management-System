@@ -1,0 +1,634 @@
+
+@using Library_Management_System.Models
+
+@{
+ViewData["Title"] = "Check In";
+List<User> students = ViewBag.Students as List<User> ?? new List<User>();
+}
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h3 class="fw-bold mb-1">Book Check In</h3>
+                    <p class="text-muted mb-0">Manage returned books and lost book payments</p>
+                </div>
+                <span class="badge bg-success fs-6 p-2">
+                    <i class="bi bi-arrow-return-left me-1"></i> Circulation
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <form id="checkinForm">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-person-fill me-2"></i> Student Information
+                </h5>
+            </div>
+
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="StudentId" class="form-label">Select Student</label>
+                        <select class="form-select" id="StudentId" name="StudentId" required>
+                            <option value="">Select a student</option>
+                            @foreach (User student in students)
+                            {
+                            <option value="@student.Id">@student.FullName</option>
+                            }
+                        </select>
+                        <span class="text-danger small" id="StudentIdError"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="CheckinDate" class="form-label">Check In Date</label>
+                        <input type="date"
+                               class="form-control"
+                               id="CheckinDate"
+                               value="@DateTime.Today.ToString("yyyy-MM-dd")"
+                               readonly />
+                    </div>
+                </div>
+
+                <div id="studentInfo" class="alert alert-light border mt-3 mb-0 d-none">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <small class="text-muted">Student Name</small>
+                            <div class="fw-semibold" id="selectedStudentName">-</div>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted">Currently Rented Books</small>
+                            <div class="fw-semibold" id="rentedCount">0</div>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted">Selected for Check In</small>
+                            <div class="fw-semibold" id="selectedCount">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-journal-check text-primary me-2"></i>
+                    Rented Books
+                </h5>
+                <span class="badge bg-info" id="rentedBadge">0 Books</span>
+            </div>
+
+            <div class="card-body">
+                <div id="booksLoading" class="text-center py-4 d-none">
+                    <div class="spinner-border text-primary"></div>
+                    <p class="text-muted mt-2 mb-0">Loading rented books...</p>
+                </div>
+
+                <div id="noBooks" class="text-center py-5 text-muted">
+                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                    Select a student to view their rented books.
+                </div>
+
+                <div class="table-responsive d-none" id="booksTableContainer">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                        <tr>
+                            <th style="min-width:90px;">Select</th>
+                            <th style="min-width:200px;">Book Name</th>
+                            <th style="min-width:130px;">Rented Date</th>
+                            <th style="min-width:130px;">Book Price</th>
+                            <th style="min-width:150px;">Max Allowed Date</th>
+                            <th style="min-width:100px;">Fine</th>
+                            <th style="min-width:120px;">Status</th>
+                            <th style="min-width:120px;">Lost</th>
+                        </tr>
+                        </thead>
+                        <tbody id="booksTableBody"></tbody>
+                    </table>
+
+                    <div class="alert alert-info mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Select the books being checked in. Overdue fines apply only to books
+                        that are returned normally. If a book is marked lost, its fine is
+                        removed and only its book price is charged.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-receipt text-primary me-2"></i>
+                    Check In Summary
+                </h5>
+            </div>
+
+            <div class="card-body">
+                <div class="row justify-content-end">
+                    <div class="col-md-5 col-lg-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Currently Rented</span>
+                            <strong id="totalRented">0</strong>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Books Selected</span>
+                            <strong id="totalSelected">0</strong>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Books Marked Lost</span>
+                            <strong id="totalLost">0</strong>
+                        </div>
+
+                        <hr />
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Overdue Fine</span>
+                            <strong class="text-warning" id="totalFine">0.00</strong>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Lost Book Amount</span>
+                            <strong class="text-danger" id="lostAmount">0.00</strong>
+                        </div>
+
+                        <hr />
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Grand Total</h5>
+                            <h4 class="text-danger fw-bold mb-0" id="grandTotal">0.00</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mb-5">
+            <a asp-controller="Circulation"
+               asp-action="Index"
+               class="btn btn-outline-secondary">
+                Cancel
+            </a>
+
+            <button type="submit" class="btn btn-success px-4" id="checkinBtn">
+                <i class="bi bi-check-circle me-1"></i> Complete Check In
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    $(document).ready(function () {
+        let rentedBooks = [];
+        let requestId = 0;
+
+        const booksTableBody = $("#booksTableBody");
+
+        function formatDate(date) {
+            if (!date) return "-";
+
+            const parsedDate = new Date(date);
+
+            if (isNaN(parsedDate.getTime())) return "-";
+
+            return parsedDate.toLocaleDateString();
+        }
+
+        function formatAmount(amount) {
+            return (Number(amount) || 0).toFixed(2);
+        }
+
+        function calculateSelectedBooks() {
+            const selectedBooks = [];
+
+            let selectedCount = 0;
+            let lostCount = 0;
+            let totalFine = 0;
+            let lostAmount = 0;
+
+            $(".bookRow").each(function () {
+                const row = $(this);
+
+                const isSelected = row.find(".returnBook").is(":checked");
+                const isLost = row.find(".lostBook").is(":checked");
+
+                if (!isSelected) return;
+
+                selectedCount++;
+
+                const rentLogId = Number(row.attr("data-rent-log-id"));
+                const price = Number(row.attr("data-price")) || 0;
+                const fine = Number(row.attr("data-fine")) || 0;
+
+                if (!Number.isInteger(rentLogId) || rentLogId <= 0) {
+                    throw new Error("A selected book is missing its rent log ID. Please reload the books.");
+                }
+
+                selectedBooks.push({
+                    rentLogId: rentLogId,
+                    isLost: isLost
+                });
+
+                if (isLost) {
+                    lostCount++;
+                    lostAmount += price;
+                } else {
+                    totalFine += fine;
+                }
+            });
+
+            const grandTotal = totalFine + lostAmount;
+
+            return {
+                selectedBooks,
+                selectedCount,
+                lostCount,
+                totalFine,
+                lostAmount,
+                grandTotal
+            };
+        }
+
+        function updateSummary() {
+            let totals;
+
+            try {
+                totals = calculateSelectedBooks();
+            } catch {
+                totals = {
+                    selectedCount: 0,
+                    lostCount: 0,
+                    totalFine: 0,
+                    lostAmount: 0,
+                    grandTotal: 0
+                };
+            }
+
+            $("#rentedCount").text(rentedBooks.length);
+            $("#selectedCount").text(totals.selectedCount);
+            $("#rentedBadge").text(`${rentedBooks.length} Books`);
+
+            $("#totalRented").text(rentedBooks.length);
+            $("#totalSelected").text(totals.selectedCount);
+            $("#totalLost").text(totals.lostCount);
+
+            $("#totalFine").text(formatAmount(totals.totalFine));
+            $("#lostAmount").text(formatAmount(totals.lostAmount));
+            $("#grandTotal").text(formatAmount(totals.grandTotal));
+        }
+
+        function showEmptyMessage(message) {
+            booksTableBody.empty();
+
+            $("#booksTableContainer").addClass("d-none");
+
+            $("#noBooks")
+                .removeClass("d-none")
+                .text(message);
+
+            rentedBooks = [];
+
+            updateSummary();
+        }
+
+        function renderBooks(books) {
+            booksTableBody.empty();
+
+            if (!books || books.length === 0) {
+                showEmptyMessage("This student has no currently rented books.");
+                return;
+            }
+
+            rentedBooks = books;
+
+            books.forEach(function (book) {
+                const price = Number(book.price) || 0;
+                const fine = Number(book.fine) || 0;
+                const rentLogId = Number(book.rentedLogId);
+
+                const maxDate = book.maxAllowedDate
+                    ? new Date(book.maxAllowedDate)
+                    : null;
+
+                const isOverdue = maxDate &&
+                    !isNaN(maxDate.getTime()) &&
+                    new Date().setHours(0, 0, 0, 0) >
+                    new Date(maxDate).setHours(0, 0, 0, 0);
+
+                const row = $("<tr></tr>")
+                    .addClass("bookRow")
+                    .attr("data-rent-log-id", rentLogId)
+                    .attr("data-price", price)
+                    .attr("data-fine", fine);
+
+                row.append(`
+                    <td>
+                        <input type="checkbox"
+                               class="form-check-input returnBook"
+                               aria-label="Select book for check in">
+                    </td>
+                `);
+
+                row.append(
+                    $("<td></td>").append(
+                        $("<div></div>")
+                            .addClass("fw-semibold")
+                            .text(book.bookName || "-")
+                    )
+                );
+
+                row.append(
+                    $("<td></td>").text(formatDate(book.rentedDate))
+                );
+
+                row.append(
+                    $("<td></td>").text(formatAmount(price))
+                );
+
+                row.append(
+                    $("<td></td>").text(formatDate(book.maxAllowedDate))
+                );
+
+                row.append(
+                    $("<td></td>")
+                        .addClass(fine > 0 ? "text-danger fw-semibold" : "")
+                        .text(formatAmount(fine))
+                );
+
+                row.append(`
+                    <td>
+                        ${isOverdue
+                    ? '<span class="badge bg-danger">Overdue</span>'
+                    : '<span class="badge bg-success">Within Limit</span>'}
+                    </td>
+                `);
+
+                row.append(`
+                    <td>
+                        <div class="form-check">
+                            <input type="checkbox"
+                                   class="form-check-input lostBook"
+                                   disabled
+                                   aria-label="Mark book as lost">
+                            <label class="form-check-label small">Lost</label>
+                        </div>
+                    </td>
+                `);
+
+                booksTableBody.append(row);
+            });
+
+            $("#noBooks").addClass("d-none");
+            $("#booksTableContainer").removeClass("d-none");
+
+            updateSummary();
+        }
+
+        async function loadRentedBooks(studentId) {
+            const currentRequest = ++requestId;
+
+            rentedBooks = [];
+            booksTableBody.empty();
+
+            $("#booksTableContainer").addClass("d-none");
+            $("#noBooks").addClass("d-none");
+            $("#booksLoading").removeClass("d-none");
+
+            updateSummary();
+
+            try {
+                const response = await secureFetch(
+                    `/api/book-request-api/checkin/${encodeURIComponent(studentId)}`,
+                    {
+                        method: "GET"
+                    }
+                );
+
+                if (currentRequest !== requestId) return;
+
+                if (!response.ok) {
+                    throw new Error("Unable to load rented books.");
+                }
+
+                const result = await response.json();
+
+                if (currentRequest !== requestId) return;
+
+                const books = Array.isArray(result)
+                    ? result
+                    : result.books || [];
+
+                $("#booksLoading").addClass("d-none");
+
+                renderBooks(books);
+
+            } catch (error) {
+                if (currentRequest !== requestId) return;
+
+                $("#booksLoading").addClass("d-none");
+
+                showEmptyMessage("Unable to load rented books. Please try again.");
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Unable to Load Books",
+                    text: error.message || "Please try selecting the student again."
+                });
+            }
+        }
+
+        $("#StudentId").on("change", async function () {
+            const studentId = $(this).val();
+
+            requestId++;
+
+            if (!studentId) {
+                $("#studentInfo").addClass("d-none");
+                showEmptyMessage("Select a student to view their rented books.");
+                return;
+            }
+
+            const studentName = $(this).find("option:selected").text();
+
+            $("#selectedStudentName").text(studentName);
+            $("#studentInfo").removeClass("d-none");
+
+            await loadRentedBooks(studentId);
+        });
+
+        booksTableBody.on("change", ".returnBook", function () {
+            const row = $(this).closest("tr");
+            const lostCheckbox = row.find(".lostBook");
+
+            lostCheckbox.prop("disabled", !this.checked);
+
+            if (!this.checked) {
+                lostCheckbox.prop("checked", false);
+            }
+
+            updateSummary();
+        });
+
+        booksTableBody.on("change", ".lostBook", function () {
+            if (this.checked) {
+                $(this).closest("tr").find(".returnBook").prop("checked", true);
+            }
+
+            updateSummary();
+        });
+
+        $("#checkinForm").on("submit", async function (e) {
+            e.preventDefault();
+
+            $("#StudentIdError").text("");
+
+            const studentId = $("#StudentId").val();
+            const checkinDate = $("#CheckinDate").val();
+
+            if (!studentId) {
+                $("#StudentIdError").text("Please select a student.");
+                return;
+            }
+
+            let totals;
+
+            try {
+                totals = calculateSelectedBooks();
+            } catch (error) {
+                await Swal.fire({
+                    icon: "error",
+                    title: "Invalid Book Information",
+                    text: error.message
+                });
+                return;
+            }
+
+            if (totals.selectedCount === 0) {
+                await Swal.fire({
+                    icon: "warning",
+                    title: "No Books Selected",
+                    text: "Please select at least one book to check in."
+                });
+                return;
+            }
+
+            const normalReturnCount = totals.selectedCount - totals.lostCount;
+
+            const confirmationHtml = `
+                <div class="text-start">
+                    <p>You are about to process <strong>${totals.selectedCount}</strong> book(s).</p>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Books being returned:</span>
+                        <strong>${normalReturnCount}</strong>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Books marked lost:</span>
+                        <strong>${totals.lostCount}</strong>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Overdue Fine:</span>
+                        <strong class="text-warning">${formatAmount(totals.totalFine)}</strong>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Lost Book Amount:</span>
+                        <strong class="text-danger">${formatAmount(totals.lostAmount)}</strong>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5>Grand Total:</h5>
+                        <h5 class="text-danger fw-bold">${formatAmount(totals.grandTotal)}</h5>
+                    </div>
+
+                    ${totals.lostCount > 0
+                ? '<p class="small text-muted mt-3 mb-0">The overdue fine for books marked as lost has been excluded.</p>'
+                : ''}
+                </div>
+            `;
+
+            const result = await Swal.fire({
+                title: "Confirm Check In?",
+                html: confirmationHtml,
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: "Yes, Check In",
+                cancelButtonText: "Review Again",
+                confirmButtonColor: "#198754"
+            });
+
+            if (!result.isConfirmed) return;
+
+            const checkinData = {
+                studentId: Number(studentId),
+                checkinDate: checkinDate,
+                books: totals.selectedBooks
+            };
+
+            const checkinBtn = $("#checkinBtn");
+
+            checkinBtn.prop("disabled", true);
+
+            checkinBtn.html(
+                '<span class="spinner-border spinner-border-sm me-2"></span>Processing...'
+            );
+
+            try {
+                const response = await secureFetch(
+                    "/api/circulation-api/checkin",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(checkinData)
+                    }
+                );
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    await Swal.fire({
+                        icon: "success",
+                        title: "Check In Successful",
+                        text: data.message || "Books have been checked in successfully.",
+                        confirmButtonColor: "#198754"
+                    });
+
+                    window.location.href = "/IssuedBooks";
+                } else {
+                    await Swal.fire({
+                        icon: "error",
+                        title: "Check In Failed",
+                        text: data.message || "Unable to process check in."
+                    });
+                }
+
+            } catch (error) {
+                await Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: error.message || "Unable to complete check in. Please try again."
+                });
+
+            } finally {
+                checkinBtn.prop("disabled", false);
+
+                checkinBtn.html(
+                    '<i class="bi bi-check-circle me-1"></i> Complete Check In'
+                );
+            }
+        });
+    });
+</script>

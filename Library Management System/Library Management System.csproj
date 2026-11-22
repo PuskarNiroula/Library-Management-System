@@ -22,6 +22,7 @@
 
     <ItemGroup>
       <Folder Include="Migrations\" />
+      <Folder Include="Views\Checkin\" />
       <Folder Include="wwwroot\Images\Books\" />
       <Folder Include="wwwroot\Images\User\" />
     </ItemGroup>
@@ -30,6 +31,10 @@
       <Content Update="appsettings.json">
         <DependentUpon>.gitignore</DependentUpon>
       </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <AdditionalFiles Include="Views\Checkin\Index.cshtml" />
     </ItemGroup>
 
 </Project>
