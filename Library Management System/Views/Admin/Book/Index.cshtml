@@ -1,5 +1,4 @@
-﻿
-@model Library_Management_System.ViewModels.BooksViewModel
+﻿@model Library_Management_System.ViewModels.BooksViewModel
 
 @{
     ViewData["Title"] = "Books";
@@ -60,16 +59,27 @@
 
                             <td class="py-3 px-5 text-center">
                                 <div class="flex justify-center gap-2">
+
+                                    <button type="button"
+                                            onclick="addMoreBooks(@book.BookId, '@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(book.BookName ?? ""))')"
+                                            class="px-3 py-1 bg-green-500 text-white rounded-lg shadow hover:bg-green-600 transition"
+                                            title="Add More Copies">
+                                        <i class="bi bi-plus-circle"></i>
+                                    </button>
+
                                     <a href="@Url.Action("Edit", "Book", new { id = book.BookId })"
-                                       class="px-3 py-1 bg-yellow-400 text-white rounded-lg shadow hover:bg-yellow-500 transition">
+                                       class="px-3 py-1 bg-yellow-400 text-white rounded-lg shadow hover:bg-yellow-500 transition"
+                                       title="Edit Book">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
 
                                     <button type="button"
                                             onclick="deleteBook(@book.BookId)"
-                                            class="px-3 py-1 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition">
+                                            class="px-3 py-1 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition"
+                                            title="Delete Book">
                                         <i class="bi bi-trash-fill"></i>
                                     </button>
+
                                 </div>
                             </td>
                         </tr>
@@ -130,6 +140,84 @@
 
 @section Scripts {
     <script>
+
+
+        async function addMoreBooks(bookId, bookName) {
+
+            const { value: quantity } = await Swal.fire({
+                title: 'Add More Copies',
+                text: `Book: ${bookName}`,
+                input: 'number',
+                inputAttributes: {
+                    min: 1,
+                    step: 1,
+                    placeholder: 'Enter quantity'
+                },
+                inputPlaceholder: 'Enter additional quantity',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#16a34a',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Add Copies',
+                cancelButtonText: 'Cancel',
+                inputValidator: (value) => {
+                    const qty = Number(value);
+
+                    if (!Number.isSafeInteger(qty) || qty < 1) {
+                        return 'Please enter a valid quantity greater than 0.';
+                    }
+                }
+            });
+
+            if (!quantity) return;
+
+            try {
+                const response = await secureFetch('/api/book-api/add-more', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        bookId: bookId,
+                        quantity: Number(quantity)
+                    })
+                });
+
+                if (response.ok) {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Copies Added!',
+                        text: `${quantity} additional copies of ${bookName} have been added.`,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+
+                    window.location.reload();
+                } else {
+                    let errorMessage = 'Unable to add more copies. Please try again.';
+
+                    try {
+                        const data = await response.json();
+                        errorMessage = data.message || data.Message || errorMessage;
+                    } catch {
+                    }
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Failed!',
+                        text: errorMessage
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Something went wrong. Please try again.'
+                });
+            }
+}
+
+
         async function deleteBook(bookId) {
             const result = await Swal.fire({
                 title: 'Are you sure?',
@@ -167,5 +255,6 @@
                 });
             }
         }
+
     </script>
 }
