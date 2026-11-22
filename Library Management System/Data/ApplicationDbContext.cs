@@ -14,5 +14,17 @@ namespace Library_Management_System.Data
         public DbSet<SalesRecord>  SalesRecords { get; set; }
         public DbSet<Setting> Settings { get; set; }
         public DbSet<LostRecord> LostRecords { get; set; }
+        
+        
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Book>()
+                .HasOne(b => b.Category)
+                .WithMany(c => c.Books)
+                .HasForeignKey(b => b.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
     }
 }

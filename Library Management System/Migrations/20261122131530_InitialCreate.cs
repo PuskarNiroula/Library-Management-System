@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Library_Management_System.Migrations
 {
     /// <inheritdoc />
-    public partial class part4 : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -27,6 +27,23 @@ namespace Library_Management_System.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Category", x => x.CategoryId);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Settings",
+                columns: table => new
+                {
+                    SettingId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Key = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Value = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Settings", x => x.SettingId);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -79,7 +96,7 @@ namespace Library_Management_System.Migrations
                         column: x => x.CategoryId,
                         principalTable: "Category",
                         principalColumn: "CategoryId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -206,25 +223,37 @@ namespace Library_Management_System.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Fines",
+                name: "LostRecords",
                 columns: table => new
                 {
-                    FineId = table.Column<int>(type: "int", nullable: false)
+                    LostRecordId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    RentLogId = table.Column<int>(type: "int", nullable: false),
-                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    LateDays = table.Column<int>(type: "int", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    PaidDate = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                    BookId = table.Column<int>(type: "int", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    StudentId = table.Column<int>(type: "int", nullable: false),
+                    RecordedOn = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    RentLogId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Fines", x => x.FineId);
+                    table.PrimaryKey("PK_LostRecords", x => x.LostRecordId);
                     table.ForeignKey(
-                        name: "FK_Fines_RentLogs_RentLogId",
+                        name: "FK_LostRecords_Books_BookId",
+                        column: x => x.BookId,
+                        principalTable: "Books",
+                        principalColumn: "BookId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_LostRecords_RentLogs_RentLogId",
                         column: x => x.RentLogId,
                         principalTable: "RentLogs",
                         principalColumn: "RentLogId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_LostRecords_Users_StudentId",
+                        column: x => x.StudentId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
@@ -251,9 +280,20 @@ namespace Library_Management_System.Migrations
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Fines_RentLogId",
-                table: "Fines",
-                column: "RentLogId");
+                name: "IX_LostRecords_BookId",
+                table: "LostRecords",
+                column: "BookId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LostRecords_RentLogId",
+                table: "LostRecords",
+                column: "RentLogId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LostRecords_StudentId",
+                table: "LostRecords",
+                column: "StudentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RentLogs_ApprovedById",
@@ -279,6 +319,12 @@ namespace Library_Management_System.Migrations
                 name: "IX_SalesRecords_CustomerId",
                 table: "SalesRecords",
                 column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Settings_Key",
+                table: "Settings",
+                column: "Key",
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -291,10 +337,13 @@ namespace Library_Management_System.Migrations
                 name: "BookRequests");
 
             migrationBuilder.DropTable(
-                name: "Fines");
+                name: "LostRecords");
 
             migrationBuilder.DropTable(
                 name: "SalesRecords");
+
+            migrationBuilder.DropTable(
+                name: "Settings");
 
             migrationBuilder.DropTable(
                 name: "RentLogs");

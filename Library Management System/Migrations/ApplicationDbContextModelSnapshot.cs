@@ -305,7 +305,7 @@ namespace Library_Management_System.Migrations
                     b.HasOne("Library_Management_System.Models.DbModels.Category", "Category")
                         .WithMany("Books")
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Category");

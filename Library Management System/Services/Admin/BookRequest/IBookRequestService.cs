@@ -7,6 +7,5 @@ public interface IBookRequestService
     
     public Task Reject(int id); 
     public Task Approve(int id,int userId);
-    public Task CheckoutAsync(CheckoutDto dto, int approvedBy);
     
 }

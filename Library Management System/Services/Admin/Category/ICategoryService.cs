@@ -1,4 +1,5 @@
 ﻿using Library_Management_System.DTOs.Category;
+using Library_Management_System.ViewModels;
 
 namespace Library_Management_System.Services.Admin.Category;
 
@@ -9,5 +10,5 @@ public interface ICategoryService
     Task<bool> GetCategoryByNameAsync(string categoryName);
     Task<bool> DeleteCategoryByIdAsync(int categoryId);
     Task<bool> UpdateCategoryByIdAsync(UpdateCategory dto);
-    Task<List<Models.DbModels.Category>> GetAllCategoriesAsync();
+    Task<CategoriesViewModel> GetAllCategoriesAsync(int page);
 }

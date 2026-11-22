@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Library_Management_System.DTOs.Checkout;
 using Library_Management_System.Services.Admin;
 using Microsoft.AspNetCore.Authorization;
@@ -28,5 +29,49 @@ public class CirculationApiController(CirculationService service):ControllerBase
         }
         
     }
+       
+    [HttpPost]
+    public async Task<IActionResult> Checkout([FromBody] CheckoutDto checkoutDto)
+    {
+        try
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+                throw new UnauthorizedAccessException();
+            await service.CheckoutAsync(checkoutDto, int.Parse(userId));
+
+            return Ok(new
+            {
+                message = "Checkout completed successfully."
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                message = ex.Message
+            });
+        }
+    }
+    
+           [HttpGet("{id:int}")]
+    public async Task<IActionResult> Checkin(int id)
+    {
+
+        try
+        {
+            return Ok(await service.GetRentedBookLogs(id));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                status = "error",
+                message = ex.Message
+            });
+        }
+
+    }
+
     
 }

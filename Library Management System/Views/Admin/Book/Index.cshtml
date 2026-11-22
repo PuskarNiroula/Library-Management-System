@@ -1,4 +1,5 @@
-﻿@model IEnumerable<Library_Management_System.Models.DbModels.Book>
+﻿
+@model Library_Management_System.ViewModels.BooksViewModel
 
 @{
     ViewData["Title"] = "Books";
@@ -6,71 +7,130 @@
     ViewData["PageHeading"] = "Book Management";
 }
 
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <a href="@Url.Action("Create", "Book")" class="btn shadow-sm btn-addButton">
-            <i class="bi bi-plus-lg"></i> Add Book
-        </a>
-    </div>
-
-        <div class="card-body">
-            <div class="overflow-x-auto">
-    <table class="min-w-full bg-white rounded-xl shadow-lg overflow-hidden">
-        <thead  class="bg-[#4f46e5]">
-            <tr>
-                <th class="py-3 px-5 text-left text-sm font-semibold uppercase tracking-wider text-white">#</th>
-                <th class="py-3 px-5 text-left text-sm font-semibold uppercase tracking-wider text-white">Title</th>
-                <th class="py-3 px-5 text-left text-sm font-semibold uppercase tracking-wider text-white">Author</th>
-                <th class="py-3 px-5 text-left text-sm font-semibold uppercase tracking-wider text-white">Category</th>
-                <th class="py-3 px-5 text-left text-sm font-semibold uppercase tracking-wider text-white">Price</th>
-                <th class="py-3 px-5 text-left text-sm font-semibold uppercase tracking-wider text-white">Published</th>
-                <th class="py-3 px-5 text-center text-sm font-semibold uppercase tracking-wider text-white">Actions</th>
-
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-indigo-100">
-            @if (Model.Any())
-            {
-                var index = 1;
-                foreach (var book in Model)
-                {
-                    <tr class="transition duration-200" id="tableRow">
-                        <td class="py-3 px-5 text-sm text-gray-700">@index</td>
-                        <td class="py-3 px-5 text-sm text-indigo-900 font-medium">@book.BookName</td>
-                        <td class="py-3 px-5 text-sm text-gray-800">@book.Author</td>
-                        <td class="py-3 px-5 text-sm text-gray-800">@book.Category.CategoryName</td>
-                        <td class="py-3 px-5 text-sm text-gray-800 font-medium">Rs.@book.Price.ToString("0.00")</td>
-                        <td class="py-3 px-5 text-sm text-gray-700">@book.PublicationDate?.ToString("yyyy-MM-dd")</td>
-                        <td class="py-3 px-5 text-center flex justify-center gap-2">
-                            <a href="@Url.Action("Edit", "Book", new { id = book.BookId })" 
-                               class="px-3 py-1 bg-yellow-400 text-white rounded-lg shadow hover:bg-yellow-500 transition">
-                                <i class="bi bi-pencil-square"></i>
-                            </a>
-                            <button type="button" onclick="deleteBook(@book.BookId)" 
-                               class="px-3 py-1 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition">
-                                <i class="bi bi-trash-fill"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    index++;
-                }
-            }
-            else
-            {
-                <tr>
-                    <td colspan="7" class="py-6 text-center text-gray-400 text-lg font-medium">No books available.</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <a href="@Url.Action("Create", "Book")" class="btn shadow-sm btn-addButton">
+        <i class="bi bi-plus-lg"></i> Add Book
+    </a>
 </div>
 
+<div class="card-body">
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white rounded-xl shadow-lg overflow-hidden">
+            <thead class="bg-[#4f46e5]">
+                <tr>
+                    <th class="py-3 px-5 text-left text-sm font-semibold uppercase tracking-wider text-white">#</th>
+                    <th class="py-3 px-5 text-left text-sm font-semibold uppercase tracking-wider text-white">Title</th>
+                    <th class="py-3 px-5 text-left text-sm font-semibold uppercase tracking-wider text-white">Author</th>
+                    <th class="py-3 px-5 text-left text-sm font-semibold uppercase tracking-wider text-white">Category</th>
+                    <th class="py-3 px-5 text-left text-sm font-semibold uppercase tracking-wider text-white">Price</th>
+                    <th class="py-3 px-5 text-left text-sm font-semibold uppercase tracking-wider text-white">Published</th>
+                    <th class="py-3 px-5 text-center text-sm font-semibold uppercase tracking-wider text-white">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody class="divide-y divide-indigo-100">
+                @if (Model.Books != null && Model.Books.Any())
+                {
+                    var index = (Model.CurrentPage - 1) * 10 + 1;
+
+                    foreach (var book in Model.Books)
+                    {
+                        <tr class="transition duration-200 hover:bg-indigo-50">
+                            <td class="py-3 px-5 text-sm text-gray-700">@index</td>
+
+                            <td class="py-3 px-5 text-sm text-indigo-900 font-medium">
+                                @book.BookName
+                            </td>
+
+                            <td class="py-3 px-5 text-sm text-gray-800">
+                                @book.Author
+                            </td>
+
+                            <td class="py-3 px-5 text-sm text-gray-800">
+                                @book.Category?.CategoryName
+                            </td>
+
+                            <td class="py-3 px-5 text-sm text-gray-800 font-medium">
+                                Rs.@book.Price.ToString("0.00")
+                            </td>
+
+                            <td class="py-3 px-5 text-sm text-gray-700">
+                                @book.PublicationDate?.ToString("yyyy-MM-dd")
+                            </td>
+
+                            <td class="py-3 px-5 text-center">
+                                <div class="flex justify-center gap-2">
+                                    <a href="@Url.Action("Edit", "Book", new { id = book.BookId })"
+                                       class="px-3 py-1 bg-yellow-400 text-white rounded-lg shadow hover:bg-yellow-500 transition">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+
+                                    <button type="button"
+                                            onclick="deleteBook(@book.BookId)"
+                                            class="px-3 py-1 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        index++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="py-6 text-center text-gray-400 text-lg font-medium">
+                            No books available.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <div class="flex flex-wrap justify-between items-center gap-3 mt-5">
+
+            <span class="text-sm text-gray-500">
+                Page @Model.CurrentPage of @Model.TotalPages
+            </span>
+
+            <div class="flex flex-wrap gap-2">
+
+                @if (Model.CurrentPage > 1)
+                {
+                    <a href="@Url.Action("Index", new { page = Model.CurrentPage - 1 })"
+                       class="px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm text-gray-700">
+                        <i class="bi bi-chevron-left"></i> Previous
+                    </a>
+                }
+
+                @for (var pageNumber = 1; pageNumber <= Model.TotalPages; pageNumber++)
+                {
+                    <a href="@Url.Action("Index", new { page = pageNumber })"
+                       class="px-3 py-2 rounded-lg text-sm @(pageNumber == Model.CurrentPage ? "bg-indigo-600 text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-700")">
+                        @pageNumber
+                    </a>
+                }
+
+                @if (Model.CurrentPage < Model.TotalPages)
+                {
+                    <a href="@Url.Action("Index", new { page = Model.CurrentPage + 1 })"
+                       class="px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm text-gray-700">
+                        Next <i class="bi bi-chevron-right"></i>
+                    </a>
+                }
+
+            </div>
         </div>
+    }
+</div>
 
-
-@section Scripts{
-<script>
-    async function deleteBook(bookId) {
+@section Scripts {
+    <script>
+        async function deleteBook(bookId) {
             const result = await Swal.fire({
                 title: 'Are you sure?',
                 text: "You won't be able to revert this!",
@@ -85,17 +145,19 @@
 
             const response = await secureFetch(`/api/book-api/Delete/${bookId}`, {
                 method: 'DELETE',
-            },);
-            if(response.ok) {
-                Swal.fire({
+            });
+
+            if (response.ok) {
+                await Swal.fire({
                     icon: 'success',
                     title: 'Deleted!',
                     text: 'Book has been deleted.',
                     timer: 1500,
                     showConfirmButton: false
                 });
+
                 window.location.reload();
-            }else{
+            } else {
                 Swal.fire({
                     icon: 'error',
                     title: 'Oops...',
@@ -104,6 +166,6 @@
                     showConfirmButton: false
                 });
             }
-    }
-</script>
+        }
+    </script>
 }
