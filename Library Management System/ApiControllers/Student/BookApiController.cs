@@ -88,9 +88,6 @@ public class BookApiController(IBookService service,IBookInventoryService bookIn
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (userId == null)
-            return Unauthorized();
-
         var dto = new BookRequestDto
         {
             BookId = rentBookDto.BookId,
