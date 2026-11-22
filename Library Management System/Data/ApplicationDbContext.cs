@@ -15,5 +15,6 @@ namespace Library_Management_System.Data
         public DbSet<BookInventory> BookInventories { get; set; }
         public DbSet<SalesRecord>  SalesRecords { get; set; }
         public DbSet<Setting> Settings { get; set; }
+        public DbSet<LostRecord> LostRecords { get; set; }
     }
 }
