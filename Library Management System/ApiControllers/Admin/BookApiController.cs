@@ -1,4 +1,5 @@
 using Library_Management_System.Data;
+using Library_Management_System.DTOs;
 using Library_Management_System.DTOs.Book;
 using Library_Management_System.Services.Admin.Book;
 using Microsoft.AspNetCore.Authorization;
@@ -189,6 +190,26 @@ public class BookApiController(IBookService service,ApplicationDbContext dbConte
             status = "error",
             message = "Internal Server Error just to check"
         });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> AddMore([FromBody] AddBookRequestDto dto)
+    {
+        try
+        {
+            await service.AddBookQuantityAsync(dto);
+            return Ok("New book quantity added successfully");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new
+            {
+                message = ex.Message,
+            });
+        }
+        
+        
+        
     }
 
  

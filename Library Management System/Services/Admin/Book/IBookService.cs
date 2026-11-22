@@ -1,3 +1,4 @@
+using Library_Management_System.DTOs;
 using Library_Management_System.DTOs.Book;
 using Library_Management_System.Models;
 
@@ -14,5 +15,7 @@ public interface IBookService
     Task<PaginatedBook<Models.DbModels.Book>> GetSearchedBook(string searchString,int page=1,int pageSize=6);
     
     Task<PaginatedBook<Models.DbModels.Book>> GetPaginatedBooks(int page=1,int pageSize=6);
+
+    Task AddBookQuantityAsync(AddBookRequestDto dto);
 
 }

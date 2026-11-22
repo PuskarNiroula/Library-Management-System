@@ -1,4 +1,5 @@
 using Library_Management_System.Data;
+using Library_Management_System.DTOs;
 using Library_Management_System.DTOs.Book;
 using Library_Management_System.Models;
 using Library_Management_System.Models.DbModels;
@@ -151,6 +152,31 @@ public class BookService(ApplicationDbContext dbContext) : IBookService
             .Take(pageSize)
             .ToListAsync();
        return MakePaginatedModel(books, page, pageSize, totalBooks);
+    }
+
+    public async Task AddBookQuantityAsync(AddBookRequestDto dto)
+    {
+        var bookInventory = await dbContext.BookInventories.Where(b => b.BookId == dto.BookId).FirstOrDefaultAsync();
+        if (bookInventory != null)
+        {
+            bookInventory.TotalQuantity += dto.Quantity;
+            bookInventory.AvailableQuantity += dto.Quantity;
+            
+        }else {
+            var bInv = new BookInventory
+            {
+                BookId = dto.BookId,
+                TotalQuantity = dto.Quantity,
+                AvailableQuantity = dto.Quantity,
+                RentedQuantity = 0,
+                SoldQuantity = 0
+            };
+            dbContext.BookInventories.Add(bInv);
+          
+        }
+     
+        await dbContext.SaveChangesAsync();
+        
     }
 
     private PaginatedBook<Models.DbModels.Book> MakePaginatedModel(List<Models.DbModels.Book> books, int page, int pageSize,int totalBooks)
