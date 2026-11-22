@@ -10,11 +10,11 @@ public class CategoryController(ICategoryService service):Controller
     private readonly ICategoryService _service=service ?? throw new ArgumentNullException(nameof(service));
    
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int page=1)
     {
         ViewBag.ActiveMenu="Category";
-        var category = await _service.GetAllCategoriesAsync();
-        return View($"~/Views/Admin/Category/Index.cshtml",category);
+        var viewModel = await _service.GetAllCategoriesAsync(page);
+        return View($"~/Views/Admin/Category/Index.cshtml",viewModel);
     }
 
     public IActionResult Create()

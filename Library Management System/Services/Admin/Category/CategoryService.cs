@@ -1,5 +1,6 @@
 using Library_Management_System.Data;
 using Library_Management_System.DTOs.Category;
+using Library_Management_System.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -7,7 +8,6 @@ namespace Library_Management_System.Services.Admin.Category;
 
 public class CategoryService(ApplicationDbContext dbContext) : ICategoryService
 {
-    private readonly ApplicationDbContext _dbContext=dbContext;
    
     
     /// <summary>
@@ -21,13 +21,13 @@ public class CategoryService(ApplicationDbContext dbContext) : ICategoryService
         {
             CategoryName = dto.CategoryName,
         };
-        await _dbContext.Category.AddAsync(category);
-        return await _dbContext.SaveChangesAsync() > 0;
+        await dbContext.Category.AddAsync(category);
+        return await dbContext.SaveChangesAsync() > 0;
     }
 
     public async Task<Models.DbModels.Category?> GetCategoryByIdAsync(int categoryId)
     {
-        Models.DbModels.Category? category = await _dbContext.Category.FindAsync(categoryId);
+        Models.DbModels.Category? category = await dbContext.Category.FindAsync(categoryId);
         return category ?? null;
     }
     /// <summary>
@@ -37,7 +37,7 @@ public class CategoryService(ApplicationDbContext dbContext) : ICategoryService
     /// <returns>`true` if a category with the specified name exists, `false` otherwise.</returns>
     public async Task<bool> GetCategoryByNameAsync(string categoryName)
     {
-        return await _dbContext.Category
+        return await dbContext.Category
             .AnyAsync(c => c.CategoryName == categoryName);
     }
 
@@ -50,8 +50,8 @@ public class CategoryService(ApplicationDbContext dbContext) : ICategoryService
     {
         var category =await GetCategoryByIdAsync(categoryId);
         if (category == null) return false;
-        _dbContext.Remove(category);
-        await _dbContext.SaveChangesAsync();
+        dbContext.Remove(category);
+        await dbContext.SaveChangesAsync();
         return true;
 
     }
@@ -66,12 +66,35 @@ public class CategoryService(ApplicationDbContext dbContext) : ICategoryService
         var category = await GetCategoryByIdAsync(dto.CategoryId);
         if(category==null) return false;
         category.CategoryName = dto.CategoryName;
-        await _dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync();
         return true;
     }
+    
 
-    public async Task<List<Models.DbModels.Category>> GetAllCategoriesAsync()
+    public async Task<CategoriesViewModel> GetAllCategoriesAsync(int page=1)
     {
-       return await  _dbContext.Category.ToListAsync();
+        const int pageSize = 10;
+        var query= dbContext.Category
+            .AsNoTracking()
+            .OrderBy(b => b.CategoryName);
+
+        int totalCategories = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalCategories/(double)pageSize);
+        
+        page = Math.Max(1, Math.Min(page, Math.Max(1, totalPages)));
+        var categories = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var vm = new CategoriesViewModel
+        {
+            Categories = categories,
+            CurrentPage = page,
+            PageSize = pageSize,
+            TotalPages = totalPages
+        };
+        return vm;
+
     }
 }
