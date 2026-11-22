@@ -95,15 +95,31 @@ public class CirculationService(ApplicationDbContext context)
             throw;
         }
     }
-    
-     public async Task CheckoutAsync(CheckoutDto dto, int approvedBy)
+
+
+    public async Task CheckoutAsync(CheckoutDto dto, int approvedBy)
+    {
+        await ValidateRentalLimitAsync(dto);
+
+        await using var transaction = await context.Database.BeginTransactionAsync();
+
+        foreach (var book in dto.Books)
+        {
+            await ProcessCheckoutBookAsync(book, dto.StudentId, approvedBy);
+        }
+
+        await context.SaveChangesAsync();
+        await transaction.CommitAsync();
+    }
+
+    private async Task ValidateRentalLimitAsync(CheckoutDto dto)
     {
         var maxAllowedBooksValue = await context.Settings
             .Where(s => s.Key == SettingKeyEnum.MaxBooksAllowed)
             .Select(s => s.Value)
             .FirstOrDefaultAsync();
 
-        if (!int.TryParse(maxAllowedBooksValue, out int maxAllowedBooks))
+        if (!int.TryParse(maxAllowedBooksValue, out var maxAllowedBooks))
             throw new System.Exception("Maximum allowed books setting is missing or invalid.");
 
         var booksAlreadyRented = await context.BookRequests
@@ -114,83 +130,153 @@ public class CirculationService(ApplicationDbContext context)
             );
 
         var newRentalBooks = dto.Books.Count(b =>
-            b.TransactionType.ToUpper() == RequestTypeEnum.Rent.ToString().ToUpper()
+            string.Equals(
+                b.TransactionType,
+                RequestTypeEnum.Rent,
+                StringComparison.OrdinalIgnoreCase
+            )
         );
 
         if (booksAlreadyRented + newRentalBooks > maxAllowedBooks)
+        {
             throw new System.Exception(
                 $"You cannot rent {newRentalBooks} books. You already have {booksAlreadyRented} rented books and your maximum allowed limit is {maxAllowedBooks}."
             );
+        }
+    }
 
-        await using var transaction = await context.Database.BeginTransactionAsync();
+    private async Task ProcessCheckoutBookAsync(
+        CheckoutBookDto book,
+        int studentId,
+        int approvedBy)
+    {
+        var isReserved = book.ReservationId.HasValue;
 
-        foreach (var book in dto.Books)
+        ValidateTransactionType(book.TransactionType);
+
+        if (isReserved)
         {
-            if (book.ReservationId != null)
-            {
-                var request = await context.BookRequests.FindAsync(book.ReservationId);
-
-                if (request == null)
-                    throw new BookRequestNotFoundException(book.ReservationId.Value);
-
-                request.Status = BookRequestStatusEnum.Approved;
-            }
-
-            var inventory = await context.BookInventories
-                .Where(b => b.BookId == book.BookId)
-                .FirstOrDefaultAsync();
-
-            if (inventory == null)
-                throw new BookInventoryRecordNotFound(book.BookId);
-
-            if (inventory.AvailableQuantity <= 0)
-                throw new BookNotAvailableException();
-
-            inventory.AvailableQuantity--;
-
-            if (book.TransactionType.ToUpper() == RequestTypeEnum.Rent.ToString().ToUpper())
-            {
-                inventory.RentedQuantity++;
-
-                var logs = new RentLog
-                {
-                    BookId = book.BookId,
-                    StudentId = dto.StudentId,
-                    ApprovedById = approvedBy,
-                    Status = RentStatusEnum.Active,
-                    RentedDate = DateTime.Now
-                };
-
-                await context.RentLogs.AddAsync(logs);
-            }
-            else if (book.TransactionType.ToUpper() == RequestTypeEnum.Sale.ToString().ToUpper())
-            {
-                var existingBook = await context.Books.FindAsync(book.BookId);
-
-                if (existingBook == null)
-                    throw new System.Exception($"Book {book.BookId} not found.");
-
-                var sales = new SalesRecord
-                {
-                    BookId = book.BookId,
-                    CustomerId = dto.StudentId,
-                    Date = DateTime.Now,
-                    Price = existingBook.Price
-                };
-
-                context.Add(sales);
-
-                inventory.SoldQuantity++;
-                inventory.TotalQuantity--;
-            }
-
-            await context.SaveChangesAsync();
+            await ApproveReservationAsync(book.ReservationId.Value);
         }
 
-        await transaction.CommitAsync();
+        BookInventory? inventory = null;
+
+        if (!isReserved)
+        {
+            inventory = await GetAvailableInventoryAsync(book.BookId);
+            inventory.AvailableQuantity--;
+        }
+
+        if (string.Equals(
+                book.TransactionType,
+                RequestTypeEnum.Rent,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            await ProcessRentAsync(
+                book.BookId,
+                studentId,
+                approvedBy,
+                inventory
+            );
+        }
+        else
+        {
+            await ProcessSaleAsync(
+                book.BookId,
+                studentId,
+                inventory
+            );
+        }
     }
-     
-     
+
+    private void ValidateTransactionType(string transactionType)
+    {
+        if (!string.Equals(
+                transactionType,
+                RequestTypeEnum.Rent,
+                StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(
+                transactionType,
+                RequestTypeEnum.Sale,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            throw new System.Exception($"Invalid transaction type: {transactionType}");
+        }
+    }
+
+    private async Task ApproveReservationAsync(int reservationId)
+    {
+        var request = await context.BookRequests.FindAsync(reservationId);
+
+        if (request == null)
+            throw new BookRequestNotFoundException(reservationId);
+
+        request.Status = BookRequestStatusEnum.Approved;
+    }
+
+    private async Task<BookInventory> GetAvailableInventoryAsync(int bookId)
+    {
+        var inventory = await context.BookInventories
+            .FirstOrDefaultAsync(b => b.BookId == bookId);
+
+        if (inventory == null)
+            throw new BookInventoryRecordNotFound(bookId);
+
+        if (inventory.AvailableQuantity <= 0)
+            throw new BookNotAvailableException();
+
+        return inventory;
+    }
+
+    private async Task ProcessRentAsync(
+        int bookId,
+        int studentId,
+        int approvedBy,
+        BookInventory? inventory)
+    {
+        if (inventory != null)
+            inventory.RentedQuantity++;
+
+        var rentLog = new RentLog
+        {
+            BookId = bookId,
+            StudentId = studentId,
+            ApprovedById = approvedBy,
+            Status = RentStatusEnum.Active,
+            RentedDate = DateTime.Now
+        };
+
+        await context.RentLogs.AddAsync(rentLog);
+    }
+
+    private async Task ProcessSaleAsync(
+        int bookId,
+        int studentId,
+        BookInventory? inventory)
+    {
+        var existingBook = await context.Books.FindAsync(bookId);
+
+        if (existingBook == null)
+            throw new System.Exception($"Book {bookId} not found.");
+
+        var sales = new SalesRecord
+        {
+            BookId = bookId,
+            CustomerId = studentId,
+            Date = DateTime.Now,
+            Price = existingBook.Price
+        };
+
+        await context.SalesRecords.AddAsync(sales);
+
+        if (inventory != null)
+        {
+            inventory.SoldQuantity++;
+            inventory.TotalQuantity--;
+        }
+    }
+
+
     public async Task<List<CheckInResponseViewModel>> GetRentedBookLogs(int userId)
     {
         int maxDays = await GetMaxAllowedDays();
@@ -230,14 +316,14 @@ public class CirculationService(ApplicationDbContext context)
 
     private async Task<int> GetFineRate()
     {
-      var rate = await context.Settings.Where(s => s.Key == SettingKeyEnum.FineRate)
-          .Select(s => s.Value)
-          .FirstOrDefaultAsync();
-      
-      if (rate == null)
-          throw new System.Exception("Fine rate is not set please set before checking in any student");
-      
-      return int.Parse(rate);
+        var rate = await context.Settings.Where(s => s.Key == SettingKeyEnum.FineRate)
+            .Select(s => s.Value)
+            .FirstOrDefaultAsync();
+
+        if (rate == null)
+            throw new System.Exception("Fine rate is not set please set before checking in any student");
+
+        return int.Parse(rate);
     }
 
     private async Task<int> GetMaxAllowedDays()
@@ -245,10 +331,10 @@ public class CirculationService(ApplicationDbContext context)
         var allowedDays = await context.Settings.Where(s => s.Key == SettingKeyEnum.MaxAllowedDays)
             .Select(s => s.Value)
             .FirstOrDefaultAsync();
-        
-        if (allowedDays==null)
+
+        if (allowedDays == null)
             throw new System.Exception("Fine rate is not set please set before checking in any student");
-        
+
         return int.Parse(allowedDays);
     }
 }

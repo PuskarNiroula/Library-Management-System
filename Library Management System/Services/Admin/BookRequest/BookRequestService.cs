@@ -38,7 +38,7 @@ public class BookRequestService(ApplicationDbContext dbContext) : IBookRequestSe
         if (request.Status != BookRequestStatusEnum.Pending)
             throw new System.Exception("Request is already " + request.Status);
 
-        var bookStock = await dbContext.BookInventories.FindAsync(request.BookId);
+        var bookStock = await dbContext.BookInventories.Where(bi=>bi.BookId == request.BookId).FirstOrDefaultAsync();
 
         if (bookStock == null)
             throw new BookInventoryRecordNotFound(request.BookId);
