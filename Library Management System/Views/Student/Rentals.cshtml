@@ -1,5 +1,215 @@
-﻿@{
+﻿@model IEnumerable<Library_Management_System.ViewModels.BookRentalViewModel>
+
+@{
     Layout = "_StudentLayout";
+    ViewData["Title"] = "Currently Rented";
+    ViewData["ActiveMenu"] = "Rentals";
 }
 
-<h1>This shows data of the book that is currently being sent by you</h1>
+<div class="space-y-6">
+
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800">Currently Rented Books</h2>
+            <p class="text-sm text-gray-500 mt-1">Keep track of your borrowed books and rental details.</p>
+        </div>
+
+        <div class="flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-2 rounded-xl">
+            <i class="fa-solid fa-book-open"></i>
+            <span class="text-sm font-semibold">@Model.Count() Books Rented</span>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-sm text-gray-500 font-medium">Currently Rented</p>
+                    <h3 class="text-3xl font-bold text-gray-800 mt-2">@Model.Count()</h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center">
+                    <i class="fa-solid fa-book-open text-indigo-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-sm text-gray-500 font-medium">Total Book Value</p>
+                    <h3 class="text-3xl font-bold text-gray-800 mt-2">
+                        @Model.Sum(x => x.Price).ToString("N2")
+                    </h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+                    <i class="fa-solid fa-wallet text-blue-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-sm text-gray-500 font-medium">Total Fine</p>
+                    <h3 class="text-3xl font-bold text-red-600 mt-2">
+                        @Model.Sum(x => x.Fine).ToString("N2")
+                    </h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center">
+                    <i class="fa-solid fa-triangle-exclamation text-red-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+
+        <div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+                <h3 class="text-lg font-bold text-gray-800">Your Borrowed Books</h3>
+                <p class="text-sm text-gray-500 mt-1">Details of all your active rentals</p>
+            </div>
+
+            <div class="relative">
+                <i class="fa-solid fa-bookmark absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <span class="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600">
+                    Active Rentals
+                </span>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+
+            <table class="min-w-full">
+
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Book Details</th>
+                        <th class="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Price</th>
+                        <th class="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Rented Date</th>
+                        <th class="px-5 py-4 text-center text-xs font-bold uppercase tracking-wider text-gray-500">Deadline</th>
+                        <th class="px-5 py-4 text-right text-xs font-bold uppercase tracking-wider text-gray-500">Fine</th>
+                    </tr>
+                </thead>
+
+                <tbody class="divide-y divide-gray-100">
+
+                    @if (Model.Any())
+                    {
+                        foreach (var rental in Model)
+                        {
+                            <tr class="hover:bg-indigo-50/40 transition duration-200">
+
+                                <td class="px-5 py-4">
+                                    <div class="flex items-center gap-4 min-w-[230px]">
+
+                                        @if (!string.IsNullOrEmpty(rental.BookImageUrl))
+                                        {
+                                            <img src="@rental.BookImageUrl"
+                                                 alt="@rental.BookName"
+                                                 class="w-14 h-18 h-20 object-cover rounded-lg shadow-sm border border-gray-200" />
+                                        }
+                                        else
+                                        {
+                                            <div class="w-14 h-20 rounded-lg bg-indigo-50 flex items-center justify-center">
+                                                <i class="fa-solid fa-book text-indigo-400 text-2xl"></i>
+                                            </div>
+                                        }
+
+                                        <div>
+                                            <h4 class="font-semibold text-gray-800 text-sm">
+                                                @rental.BookName
+                                            </h4>
+                                            <p class="text-xs text-gray-500 mt-1">
+                                                By @rental.AuthorName
+                                            </p>
+                                        </div>
+
+                                    </div>
+                                </td>
+
+                                <td class="px-5 py-4">
+                                    <span class="font-semibold text-gray-800 text-sm">
+                                        @rental.Price.ToString("N2")
+                                    </span>
+                                </td>
+
+                                <td class="px-5 py-4">
+                                    <div class="flex items-center gap-2 text-sm text-gray-600">
+                                        <i class="fa-regular fa-calendar text-indigo-500"></i>
+                                        @rental.RentedDate.ToString("dd MMM yyyy")
+                                    </div>
+                                </td>
+
+                                <td class="px-5 py-4">
+                                    <div class="flex items-center gap-2 text-sm text-gray-600">
+                                        <i class="fa-regular fa-calendar text-indigo-500"></i>
+                                        @rental.DeadlineDate.ToString("dd MMM yyyy")
+                                    </div>
+                                </td>
+
+                                <td class="px-5 py-4 text-right">
+                                    @if (rental.Fine > 0)
+                                    {
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs font-bold">
+                                            <i class="fa-solid fa-circle-exclamation"></i>
+                                            @rental.Fine.ToString("N2")
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-50 text-green-600 text-xs font-semibold">
+                                            <i class="fa-solid fa-check-circle"></i>
+                                            No Fine
+                                        </span>
+                                    }
+                                </td>
+
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="py-16 text-center">
+                                <div class="flex flex-col items-center">
+                                    <div class="w-20 h-20 rounded-full bg-indigo-50 flex items-center justify-center mb-4">
+                                        <i class="fa-solid fa-book-open text-indigo-400 text-3xl"></i>
+                                    </div>
+
+                                    <h3 class="text-lg font-bold text-gray-700">
+                                        No Books Currently Rented
+                                    </h3>
+
+                                    <p class="text-sm text-gray-400 mt-2">
+                                        Your borrowed books will appear here.
+                                    </p>
+
+                                    <a href="/Books"
+                                       class="mt-5 px-5 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition">
+                                        <i class="fa-solid fa-book mr-2"></i>
+                                        Explore Books
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <div class="px-5 py-4 bg-gray-50 border-t border-gray-100">
+            <p class="text-xs text-gray-500">
+                <i class="fa-solid fa-circle-info text-indigo-500 mr-1"></i>
+                Please return your books within the allowed rental period to avoid additional fines.
+            </p>
+        </div>
+
+    </div>
+
+</div>
