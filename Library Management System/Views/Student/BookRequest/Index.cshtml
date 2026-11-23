@@ -1,0 +1,153 @@
+@using Library_Management_System.Services.Admin.Enum
+@model IEnumerable<Library_Management_System.ViewModels.BookRequestViewModel>
+@{
+    Layout = "_StudentLayout";
+}
+
+@{
+    ViewData["Title"] = "My Book Requests";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="font-semibold text-gray-800">My Book Requests</h4>
+</div>
+
+<div class="card-body">
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white rounded-xl shadow-lg overflow-hidden">
+            <thead class="bg-[#4f46e5]">
+                <tr>
+                    <th class="py-3 px-5 text-left text-sm font-semibold uppercase tracking-wider text-white">#</th>
+                    <th class="py-3 px-5 text-left text-sm font-semibold uppercase tracking-wider text-white">Book</th>
+                    <th class="py-3 px-5 text-left text-sm font-semibold uppercase tracking-wider text-white">Request Type</th>
+                    <th class="py-3 px-5 text-left text-sm font-semibold uppercase tracking-wider text-white">Status</th>
+                    <th class="py-3 px-5 text-center text-sm font-semibold uppercase tracking-wider text-white">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody class="divide-y divide-indigo-100">
+                @if (Model.Any())
+                {
+                    var index = 1;
+
+                    foreach (var request in Model)
+                    {
+                        <tr class="transition duration-200">
+                            <td class="py-3 px-5 text-sm text-gray-700">@index</td>
+
+                            <td class="py-3 px-5 text-sm text-indigo-900 font-medium">
+                                @request.BookName
+                            </td>
+
+                            <td class="py-3 px-5 text-sm text-indigo-900 font-medium">
+                                @request.RequestType
+                            </td>
+
+                            <td class="py-3 px-5 text-sm">
+                                @if (request.Status == "Pending")
+                                {
+                                    <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold">
+                                        Pending
+                                    </span>
+                                }
+                                else if (request.Status == "Approved")
+                                {
+                                    <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
+                                        Approved
+                                    </span>
+                                }
+                                else if (request.Status == "Rejected")
+                                {
+                                    <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
+                                        Rejected
+                                    </span>
+                                }
+                                else if (request.Status == "Cancelled")
+                                {
+                                    <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">
+                                        Cancelled
+                                    </span>
+                                }
+                                else
+                                {
+                                    @request.Status
+                                }
+                            </td>
+
+                            <td class="py-3 px-5 text-center">
+                                @if (request.Status == BookRequestStatusEnum.Pending)
+                                {
+                                    <button type="button"
+                                            onclick="cancelRequest(@request.BookRequestId)"
+                                            class="px-3 py-1 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition">
+                                        <i class="bi bi-x-lg"></i> Cancel
+                                    </button>
+                                }
+                                else
+                                {
+                                    <span class="text-gray-400 text-sm">No actions</span>
+                                }
+                            </td>
+                        </tr>
+
+                        index++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="py-6 text-center text-gray-400 text-lg font-medium">
+                            You haven't made any book requests yet.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        async function cancelRequest(requestId) {
+
+            const result = await Swal.fire({
+                title: 'Cancel Request?',
+                text: 'Are you sure you want to cancel this book request?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, cancel it!'
+            });
+
+            if (!result.isConfirmed) return;
+
+            const response = await secureFetch(
+                `/api/book-request-api/Cancel/${requestId}`,
+                {
+                    method: 'PUT'
+                }
+            );
+
+            if (response.ok) {
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Request Cancelled!',
+                    text: 'Your book request has been cancelled.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+                window.location.reload();
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Something went wrong! Please try again.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
+        }
+    </script>
+}

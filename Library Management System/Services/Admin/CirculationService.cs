@@ -62,6 +62,7 @@ public class CirculationService(ApplicationDbContext context)
                     throw new System.Exception("Invalid Rented Quantity");
 
                 rentLog.Status = RentLogStatusEnum.Returned;
+                rentLog.ReturnedDate = DateTime.Now;
 
                 inventory.RentedQuantity--;
 
@@ -110,6 +111,82 @@ public class CirculationService(ApplicationDbContext context)
 
         await context.SaveChangesAsync();
         await transaction.CommitAsync();
+    }
+    
+    public async Task<List<CheckInResponseViewModel>> GetRentedBookLogs(int userId)
+    {
+        int maxDays = await GetMaxAllowedDays();
+        int fineRate = await GetFineRate();
+        DateTime today = DateTime.Today;
+
+        var rentedBooks = await context.RentLogs.AsNoTracking()
+            .Where(l => l.StudentId == userId && l.Status == RentLogStatusEnum.Active)
+            .Select(a => new
+            {
+                a.RentLogId,
+                a.BookId,
+                BookName = a.Book.BookName,
+                a.RentedDate,
+                Price = a.Book.Price
+            })
+            .ToListAsync();
+
+        return rentedBooks.Select(a =>
+        {
+            DateTime maxAllowedDate = a.RentedDate.AddDays(maxDays);
+
+            return new CheckInResponseViewModel
+            {
+                RentedLogId = a.RentLogId,
+                BookId = a.BookId,
+                BookName = a.BookName,
+                RentedDate = a.RentedDate,
+                price = a.Price,
+                MaxAllowedDate = maxAllowedDate,
+                Fine = today > maxAllowedDate
+                    ? fineRate * (today - maxAllowedDate).Days
+                    : 0
+            };
+        }).ToList();
+    }
+
+    public async Task<List<BookRentalViewModel>> GetRentedLogs(int userId)
+    {
+        int maxDays = await GetMaxAllowedDays();
+        int fineRate = await GetFineRate();
+        DateTime today = DateTime.Today;
+
+        var rentedBooks = await context.RentLogs.AsNoTracking()
+            .Where(l => l.StudentId == userId && l.Status == RentLogStatusEnum.Active)
+            .Select(a => new
+            {
+                a.RentLogId,
+                a.BookId,
+                BookName = a.Book.BookName,
+                AuthorName= a.Book.Author,
+                a.RentedDate,
+                Price = a.Book.Price
+            })
+            .ToListAsync();
+
+        return rentedBooks.Select(a =>
+        {
+            DateTime maxAllowedDate = a.RentedDate.AddDays(maxDays);
+
+            return new BookRentalViewModel
+            {
+                
+                BookName = a.BookName,
+                AuthorName = a.AuthorName,
+                RentedDate = a.RentedDate,
+                Price = a.Price,
+                DeadlineDate = maxAllowedDate,
+                Fine = today > maxAllowedDate
+                    ? fineRate * (today - maxAllowedDate).Days
+                    : 0
+            };
+        }).ToList();
+        
     }
 
     private async Task ValidateRentalLimitAsync(CheckoutDto dto)
@@ -277,42 +354,7 @@ public class CirculationService(ApplicationDbContext context)
     }
 
 
-    public async Task<List<CheckInResponseViewModel>> GetRentedBookLogs(int userId)
-    {
-        int maxDays = await GetMaxAllowedDays();
-        int fineRate = await GetFineRate();
-        DateTime today = DateTime.Today;
-
-        var rentedBooks = await context.RentLogs.AsNoTracking()
-            .Where(l => l.StudentId == userId && l.Status == RentLogStatusEnum.Active)
-            .Select(a => new
-            {
-                a.RentLogId,
-                a.BookId,
-                BookName = a.Book.BookName,
-                a.RentedDate,
-                Price = a.Book.Price
-            })
-            .ToListAsync();
-
-        return rentedBooks.Select(a =>
-        {
-            DateTime maxAllowedDate = a.RentedDate.AddDays(maxDays);
-
-            return new CheckInResponseViewModel
-            {
-                RentedLogId = a.RentLogId,
-                BookId = a.BookId,
-                BookName = a.BookName,
-                RentedDate = a.RentedDate,
-                price = a.Price,
-                MaxAllowedDate = maxAllowedDate,
-                Fine = today > maxAllowedDate
-                    ? fineRate * (today - maxAllowedDate).Days
-                    : 0
-            };
-        }).ToList();
-    }
+   
 
     private async Task<int> GetFineRate()
     {

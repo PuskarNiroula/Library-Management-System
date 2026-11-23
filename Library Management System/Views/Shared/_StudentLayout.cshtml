@@ -1,132 +1,200 @@
 ﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
 @{
-    var activeMenu = ViewData["ActiveMenu"]?.ToString() ?? "";
+var activeMenu = ViewData["ActiveMenu"]?.ToString() ?? "";
 }
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <style>
-        .sidebar-link {
-            display: flex;
-            align-items: center;
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            color: #374151; 
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-        .sidebar-link:hover {
-            background-color: #6366f1;
-            color: #ffffff;
-        }
 
-  
-        .sidebar-link.active {
-            background-color: #4f46e5;
-            color: #ffffff;
-            font-weight: 600;
-        }
-    </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="/css/student-layout.css"/>
+
     <title>@ViewData["Title"] - Library Management System</title>
+
     @await RenderSectionAsync("HeadScript", false)
 </head>
 
-<body class="bg-gray-100 font-sans">
-<div class="flex min-h-screen w-full">
-    <aside id="sidebar" class="w-64 bg-white shadow-lg p-5 space-y-2 sticky top-0 h-screen overflow-y-auto">
-        <h3 class="text-gray-500 uppercase text-sm font-semibold mb-3">Navigation</h3>
-        
-        <a href="/Student" class="sidebar-link @(activeMenu == "Student" ? "active" : "")">
-            <i class="fa-solid fa-house-laptop mr-3"></i> Dashboard
-        </a>
+<body class="font-sans text-gray-800">
 
-        <a href="/Student/Requests" class="sidebar-link @(activeMenu == "Requests" ? "active" : "")">
-            <i class="fa-solid fa-envelope-open-text mr-3"></i> My Requests
-        </a>
+<div id="sidebarOverlay"
+     class="hidden fixed inset-0 bg-black/40 z-40 md:hidden">
+</div>
 
-        <a href="/Student/Rentals" class="sidebar-link @(activeMenu == "Rentals" ? "active" : "")">
-            <i class="fa-solid fa-book-open-reader mr-3"></i> Rented Books
-        </a>
+<div class="flex min-h-screen">
 
-        <a href="/Student/History" class="sidebar-link @(activeMenu == "History" ? "active" : "")">
-            <i class="fa-solid fa-clock-rotate-left mr-3"></i> History
-        </a>
+    <aside id="sidebar"
+           class="w-64 bg-slate-900 text-white p-6 flex flex-col h-screen sticky top-0 shrink-0">
 
-        <a href="/Student/Profile" class="sidebar-link @(activeMenu == "Profile" ? "active" : "")">
-            <i class="fa-solid fa-user-circle mr-3"></i> Profile
-        </a>
-    </aside>
-    <div class="flex flex-col flex-1 w-full overflow-y-auto">
-        
-        <nav class="bg-white shadow-md px-6 py-4 flex justify-between items-center sticky top-0 z-10 border-b border-gray-200">
-
-            <div class="flex items-center gap-4">
-                <button id="toggleSidebar"
-                        class="text-gray-600 hover:text-indigo-600 focus:outline-none transition">
-                    <i class="fa-solid fa-bars text-2xl"></i>
-                </button>
-
-                <div class="flex items-center gap-2 text-2xl font-bold text-indigo-600">
-                    <i class="fa-solid fa-book-open text-indigo-600"></i>
-                    <span class="hidden sm:block">Our Library</span>
-                </div>
+        <div class="flex items-center gap-3 mb-12 px-2">
+            <div class="w-11 h-11 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg">
+                <i class="fa-solid fa-book-open text-xl"></i>
             </div>
 
-          
-            <div class="flex items-center gap-4">
-
-                <div class="hidden md:block text-gray-700">
-                    <span class="font-semibold text-indigo-600">
-                        @(User.Identity?.Name ?? "STUDENT")
-                    </span>
-                </div>
-                
-                    <button type="submit" onclick="logout()"
-                            class="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-lg 
-                           hover:bg-indigo-700 active:bg-indigo-800 transition duration-200 shadow-sm">
-                        <i class="fa-solid fa-right-from-bracket mr-2"></i>
-                        <span class="hidden sm:inline">Logout</span>
-                    </button>
-               
+            <div>
+                <h2 class="text-lg font-bold tracking-wide">Our Library</h2>
+                <p class="text-xs text-slate-400">Student Portal</p>
             </div>
+        </div>
+
+        <div class="mb-4 px-3">
+            <p class="text-xs uppercase tracking-widest font-semibold text-slate-500">
+                Main Menu
+            </p>
+        </div>
+
+        <nav class="flex-1">
+
+            <a href="/Student"
+               class="sidebar-link @(activeMenu == "Student" ? "active" : "")">
+                <i class="fa-solid fa-house"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="/Student/Rentals"
+               class="sidebar-link @(activeMenu == "Rentals" ? "active" : "")">
+                <i class="fa-solid fa-book-open-reader"></i>
+                <span>Currently Rented</span>
+            </a>
+
+            <a href="/Student/Requests"
+               class="sidebar-link @(activeMenu == "Requests" ? "active" : "")">
+                <i class="fa-solid fa-clipboard-list"></i>
+                <span>My Requests</span>
+            </a>
+
         </nav>
 
-        <main class="flex-1 p-8 bg-gray-50">
+        <div class="border-t border-slate-700 pt-5 mt-5">
+
+            <div class="flex items-center gap-3 px-2 mb-4">
+                <div class="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center">
+                    <i class="fa-solid fa-user text-white"></i>
+                </div>
+
+                <div class="min-w-0">
+                    <p class="text-sm font-semibold text-white truncate">
+                        @(User.Identity?.Name ?? "STUDENT")
+                    </p>
+                    <p class="text-xs text-slate-400">Library Member</p>
+                </div>
+            </div>
+
+            <button type="button"
+                    onclick="logout()"
+                    class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-300 hover:bg-red-500/10 hover:text-red-400 transition">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span class="text-sm font-medium">Logout</span>
+            </button>
+
+        </div>
+
+    </aside>
+
+    <div class="flex flex-col flex-1 content-wrapper">
+
+        <header class="topbar bg-white/90 border-b border-gray-200 px-5 md:px-8 py-4 sticky top-0 z-30">
+
+            <div class="flex justify-between items-center">
+
+                <div class="flex items-center gap-4">
+
+                    <button id="toggleSidebar"
+                            type="button"
+                            class="w-10 h-10 rounded-lg flex items-center justify-center text-gray-600 hover:bg-gray-100 hover:text-indigo-600 transition">
+                        <i class="fa-solid fa-bars text-lg"></i>
+                    </button>
+
+                    <div>
+                        <h1 class="text-lg font-bold text-gray-800">
+                            @ViewData["Title"]
+                        </h1>
+                        <p class="text-xs text-gray-500 hidden sm:block">
+                            Welcome to your library portal
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="flex items-center gap-3">
+
+                    <div class="hidden sm:flex items-center gap-2 px-3 py-2 bg-indigo-50 rounded-lg">
+                        <i class="fa-solid fa-user-graduate text-indigo-600"></i>
+                        <span class="text-sm font-semibold text-indigo-700">
+                            @(User.Identity?.Name ?? "STUDENT")
+                        </span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+        <main class="flex-1 p-5 md:p-8 lg:p-10">
+
             @RenderBody()
+
         </main>
+
+        <footer class="px-8 py-5 border-t border-gray-200 bg-white">
+            <p class="text-center text-xs text-gray-500">
+                &copy; @DateTime.Now.Year Our Library. All rights reserved.
+            </p>
+        </footer>
+
     </div>
-   
+
 </div>
-<script src="js/AuthHelper.js"></script>
+
+<script src="~/js/AuthHelper.js"></script>
 
 @await RenderSectionAsync("Scripts", false)
 
-
 <script>
-        const sidebar = document.getElementById('sidebar');
-        const toggleBtn = document.getElementById('toggleSidebar');
-        toggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('hidden');
+
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggleSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+
+    toggleBtn.addEventListener('click', () => {
+
+        if (window.innerWidth <= 768) {
+            sidebar.classList.toggle('mobile-open');
+            overlay.classList.toggle('show');
+        } else {
+            sidebar.classList.toggle('collapsed');
+        }
+
+    });
+
+    overlay.addEventListener('click', () => {
+        sidebar.classList.remove('mobile-open');
+        overlay.classList.remove('show');
+    });
+
+    function logout() {
+
+        localStorage.removeItem("token");
+
+        $.ajax({
+            url: "/api/auth/logout",
+            method: "POST",
+            dataType: "json",
+            success: function () {
+                location.href = "/";
+            }
         });
 
-        function logout() {
-            localStorage.removeItem("token");
+    }
 
-            $.ajax({
-                url: "/api/auth/logout",
-                method: "POST",
-                dataType: "json",
-                success: function () {
-                    location.href="/";
-                }
-            });
+</script>
 
-        }
-    </script>
 </body>
 </html>

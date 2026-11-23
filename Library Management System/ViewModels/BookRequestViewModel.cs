@@ -6,7 +6,7 @@ public class BookRequestViewModel
 
     public string RequestType { get; set; }
 
-    public string StudentName { get; set; }
+    public string? StudentName { get; set; }
 
     public string BookName { get; set; }
 

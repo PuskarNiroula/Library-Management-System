@@ -1,4 +1,6 @@
-﻿using Library_Management_System.Services.Admin.Book;
+﻿using System.Security.Claims;
+using Library_Management_System.Services.Admin;
+using Library_Management_System.Services.Admin.Book;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,40 +8,31 @@ namespace Library_Management_System.Controllers.Student;
 
 [Route("Student")]
 [Authorize(Roles = "Student")]
-public class StudentController(IBookService service):Controller
-{
-    private readonly IBookService _service=service ?? throw new ArgumentNullException(nameof(service));
+public class StudentController(IBookService service,CirculationService circulationService):Controller{
+
     public async Task<IActionResult> Index()
     {
         ViewData["ActiveMenu"] = "Student";
-        var newBooks= await _service.GetNewBooks();
+        var newBooks= await service.GetNewBooks();
         return View("Index",newBooks);
-    }
-    [Route("Requests")]
-    public Task<IActionResult> Requests()
-    {
-        ViewData["ActiveMenu"] = "Requests";
-        return Task.FromResult<IActionResult>(View("Requests"));  
     }
 
     [Route("Rentals")]
     public async Task<IActionResult> Rentals()
     {
-        ViewData["ActiveMenu"] = "Rentals";
-        return View("Rentals");
-    }
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Unauthorized();
 
-    [Route("History")]
-    public async Task<IActionResult> History()
-    {
-        ViewData["ActiveMenu"] = "History";
-        return View("History");  
-    }
-    
-    [Route("Profile")]
-    public async Task<IActionResult> Profile()
-    {
-        ViewData["ActiveMenu"] = "Profile";
-        return View("Profile/Index");  
+        try
+        {
+            var rentals = await circulationService.GetRentedLogs(int.Parse(userId));
+            return View("Rentals", rentals);
+
+
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
     }
 }
